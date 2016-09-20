@@ -11,26 +11,25 @@ public class ChatClient {
     }
 
     public void writeToServer() throws IOException {
-        showConnectionMessage();
+        io.showConnectionMessage(socket.getPort());
         io.showInitialMessage();
 
         String message = io.getInput();
 
-        writeMessageTillQuit(message);
+        PrintWriter printWriter = createPrintWriter();
+
+        writeMessageTillQuit(message, printWriter);
         closeSocket();
     }
 
-    private void writeMessageTillQuit(String message) throws IOException {
-        while (!message.equals("quit")) {
-            PrintWriter printWriter = createPrintWriter();
+
+    private void writeMessageTillQuit(String message, PrintWriter printWriter) {
+        while (!message.contains("quit")) {
             printWriter.println(message);
             printWriter.flush();
             message = io.getInput();
         }
-    }
-
-    private void showConnectionMessage() {
-        io.showConnectionMessage(socket.getPort());
+        closeSocket();
     }
 
     private PrintWriter createPrintWriter() throws IOException {

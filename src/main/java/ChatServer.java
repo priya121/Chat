@@ -11,15 +11,13 @@ public class ChatServer {
         this.io = io;
     }
 
-    public Socket makeConnection(ServerSocket serverSocket) {
+    private Socket makeConnection(ServerSocket serverSocket) {
         try {
-            Socket socket = serverSocket.accept();
-            return socket;
+            return serverSocket.accept();
         } catch (IOException e) {
             io.showOutput("Error in connecting socket");
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
-        return null;
     }
 
     public void readInFromClient() {
@@ -50,8 +48,7 @@ public class ChatServer {
     private BufferedReader createBufferedReader(Socket server) throws IOException {
         InputStream inputStream = server.getInputStream();
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader readInput = new BufferedReader(inputStreamReader);
-        return readInput;
+        return new BufferedReader(inputStreamReader);
     }
 
     private void writeOutToClient(String message, Socket socket) {
