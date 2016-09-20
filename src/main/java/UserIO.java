@@ -32,12 +32,12 @@ public class UserIO {
         showOutput("Bye!");
     }
 
-    public void connectionErrorMessage() {
-        showOutput("Error in connecting socket");
-    }
-
     public void userJoinedMessage(String name) {
         showOutput(name + " has now joined the chat room");
+    }
+
+    public void welcomeMessage(String name) {
+        showOutput("Welcome " + name);
     }
 
     private void showOutput(String message) {

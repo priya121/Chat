@@ -10,21 +10,33 @@ public class ChatClient {
         this.socket = socket;
     }
 
-    public void writeToServer() throws IOException {
+    public void writeToServer() {
         io.showInitialMessage(socket.getPort());
         String message = io.getInput();
-        PrintWriter printWriter = createPrintWriter();
-        writeMessageTillQuit(message, printWriter);
+        try {
+            PrintWriter printWriter = createPrintWriter();
+            writeMessageTillQuit(message, printWriter);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        io.showExitMessage();
         closeSocket();
     }
 
-    private void writeMessageTillQuit(String message, PrintWriter printWriter) {
-        while (!message.contains("quit")) {
-            printWriter.println(message);
+    private void writeMessageTillQuit(String name, PrintWriter printWriter) {
+        while (!name.contains("quit")) {
+            printWriter.println(name);
             printWriter.flush();
-            message = io.getInput();
+            try {
+                InputStream inputFromClient = socket.getInputStream();
+                InputStreamReader inputStreamReader = new InputStreamReader(inputFromClient);
+                BufferedReader reader = new BufferedReader(inputStreamReader);
+                io.welcomeMessage(reader.readLine());
+                name = io.getInput();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
-        closeSocket();
     }
 
     private PrintWriter createPrintWriter() throws IOException {

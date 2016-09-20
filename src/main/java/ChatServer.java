@@ -23,7 +23,6 @@ public class ChatServer {
         try {
             return serverSocket.accept();
         } catch (IOException e) {
-            io.connectionErrorMessage();
             throw new UncheckedIOException(e);
         }
     }
@@ -37,7 +36,6 @@ public class ChatServer {
             throw new UncheckedIOException(e);
         }
     }
-
 
     private void readInputTillOver(BufferedReader reader, Socket server) {
         try {
@@ -55,9 +53,9 @@ public class ChatServer {
     private void writeOutToClient(String message, Socket socket) {
         try {
             OutputStream outToServer = socket.getOutputStream();
-            OutputStreamWriter outputWriter = new OutputStreamWriter(outToServer);
-            outputWriter.write("Welcome " + message);
-            outputWriter.flush();
+            PrintWriter printWriter = new PrintWriter(outToServer, true);
+            printWriter.println(message);
+            printWriter.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

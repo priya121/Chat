@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -42,6 +43,7 @@ public class ChatServerTest {
                      "Enter your name to register:\n" +
                      "type quit to exit\n" +
                      "Priya has now joined the chat room\n" +
+                     "Welcome Priya\n" +
                      "Bye!\n", recordedOutput.toString());
     }
 
@@ -53,10 +55,31 @@ public class ChatServerTest {
         startChat(client, server);
         assertTrue(recordedOutput.toString().contains("Bye!\n"));
     }
+    
+    @Test
+    public void writesWelcomeMessageBackToUser() throws IOException {
+        UserIO console = createConsole("Priya\nquit\n");
+        ChatClient client = new ChatClient(console, socket);
+        ChatServer server = new ChatServer(serverSocket, console);
+        startChat(client, server);
+        assertEquals("You're connected on port 4444\n" +
+                "Enter your name to register:\n" +
+                "type quit to exit\n" +
+                "Priya has now joined the chat room\n" +
+                "Welcome Priya\n" +
+                "Bye!\n", recordedOutput.toString());
+    }
 
     private void startChat(ChatClient client, ChatServer server) throws IOException {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                server.readInFromClient();
+            }
+        };
+
+        Executors.newSingleThreadExecutor().submit(runnable);
         client.writeToServer();
-        server.readInFromClient();
     }
 
     private UserIO createConsole(String userTypedText) {

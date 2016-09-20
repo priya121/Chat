@@ -12,8 +12,8 @@ public class App {
             client.writeToServer();
         } else if (args[0].equals("out")) {
             ServerSocket serverSocket = new ServerSocket(4444);
-            ChatServer server = new ChatServer(serverSocket, console);
-            server.readInFromClient();
+            ChatServer serverThread = new ChatServer(serverSocket, console);
+            serverThread.readInFromClient();
         }
     }
 }
