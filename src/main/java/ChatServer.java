@@ -5,7 +5,6 @@ import java.net.Socket;
 public class ChatServer {
     private ServerSocket serverSocket;
     private UserIO io;
-    private BufferedReader readInput;
 
     public ChatServer(ServerSocket serverSocket, UserIO io) {
         this.serverSocket = serverSocket;
@@ -51,7 +50,7 @@ public class ChatServer {
     private BufferedReader createBufferedReader(Socket server) throws IOException {
         InputStream inputStream = server.getInputStream();
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        readInput = new BufferedReader(inputStreamReader);
+        BufferedReader readInput = new BufferedReader(inputStreamReader);
         return readInput;
     }
 
