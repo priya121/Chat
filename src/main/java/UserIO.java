@@ -22,22 +22,26 @@ public class UserIO {
         return message;
     }
 
-    public void showOutput(String message) {
-        output.println(message);
-    }
-
-    public void showConnectionMessage(int port) {
-        output.print("You're connected on port " + String.valueOf(port) + "\n");
-
-    }
-
-    public void showInitialMessage() {
-        showOutput("Enter your name to register:\n" +
+    public void showInitialMessage(int port) {
+        showOutput("You're connected on port " + String.valueOf(port) + "\n" +
+                   "Enter your name to register:\n" +
                    "type quit to exit");
     }
 
     public void showExitMessage() {
         showOutput("Bye!");
+    }
+
+    public void connectionErrorMessage() {
+        showOutput("Error in connecting socket");
+    }
+
+    public void userJoinedMessage(String name) {
+        showOutput(name + " has now joined the chat room");
+    }
+
+    private void showOutput(String message) {
+        output.println(message);
     }
 
 

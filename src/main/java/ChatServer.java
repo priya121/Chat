@@ -11,44 +11,45 @@ public class ChatServer {
         this.io = io;
     }
 
+    public void readInFromClient() {
+        Socket server = makeConnection(serverSocket);
+        BufferedReader reader = createBufferedReader(server);
+        readInputTillOver(reader, server);
+        io.showExitMessage();
+        closeSocket();
+    }
+
     private Socket makeConnection(ServerSocket serverSocket) {
         try {
             return serverSocket.accept();
         } catch (IOException e) {
-            io.showOutput("Error in connecting socket");
+            io.connectionErrorMessage();
             throw new UncheckedIOException(e);
         }
     }
 
-    public void readInFromClient() {
+    private BufferedReader createBufferedReader(Socket server) {
         try {
-            Socket server = makeConnection(serverSocket);
-            BufferedReader reader = createBufferedReader(server);
-            readInputTillOver(reader, server);
-            io.showExitMessage();
+            InputStream inputStream = server.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            return new BufferedReader(inputStreamReader);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
-        closeSocket();
     }
+
 
     private void readInputTillOver(BufferedReader reader, Socket server) {
         try {
             String name = reader.readLine();
             while (name != null) {
-                io.showOutput(name + " has now joined the chat room");
+                io.userJoinedMessage(name);
                 writeOutToClient(name , server);
                 name = reader.readLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
-    }
-
-    private BufferedReader createBufferedReader(Socket server) throws IOException {
-        InputStream inputStream = server.getInputStream();
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        return new BufferedReader(inputStreamReader);
     }
 
     private void writeOutToClient(String message, Socket socket) {
@@ -58,15 +59,15 @@ public class ChatServer {
             outputWriter.write("Welcome " + message);
             outputWriter.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
     }
 
     private void closeSocket() {
         try {
             serverSocket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }
