@@ -5,7 +5,6 @@ import java.net.Socket;
 public class ChatServer {
     private ServerSocket serverSocket;
     private UserIO io;
-    private BufferedReader readInput;
 
     public ChatServer(ServerSocket serverSocket, UserIO io) {
         this.serverSocket = serverSocket;
@@ -17,7 +16,6 @@ public class ChatServer {
             Socket socket = serverSocket.accept();
             return socket;
         } catch (IOException e) {
-            io.showOutput("Error in connecting socket");
             e.printStackTrace();
         }
         return null;
@@ -26,33 +24,24 @@ public class ChatServer {
     public void readInFromClient() {
         try {
             Socket server = makeConnection(serverSocket);
-            BufferedReader reader = createBufferedReader(server);
-            readInputTillOver(reader, server);
-            io.showExitMessage();
+            InputStream inputStream = server.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            BufferedReader reader = new BufferedReader(inputStreamReader);
+            readTillNoNameGiven(reader, server);
         } catch (IOException e) {
             e.printStackTrace();
         }
         closeSocket();
     }
 
-    private void readInputTillOver(BufferedReader reader, Socket server) {
-        try {
-            String name = reader.readLine();
-            while (name != null) {
-                io.showOutput(name + " has now joined the chat room");
-                writeOutToClient(name , server);
-                name = reader.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void readTillNoNameGiven(BufferedReader reader, Socket server) throws IOException {
+        String name = reader.readLine();
+        while (name != null) {
+            io.showOutput(name + " has now joined the chat room");
+            writeOutToClient(name , server);
+            name = reader.readLine();
         }
-    }
-
-    private BufferedReader createBufferedReader(Socket server) throws IOException {
-        InputStream inputStream = server.getInputStream();
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        readInput = new BufferedReader(inputStreamReader);
-        return readInput;
+        io.showOutput("Bye!");
     }
 
     private void writeOutToClient(String message, Socket socket) {
