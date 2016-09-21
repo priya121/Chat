@@ -1,54 +1,56 @@
+import interfaces.ConsoleIO;
+import interfaces.SocketConnection;
+
 import java.io.*;
-import java.net.Socket;
 
 public class ChatClient {
-    private Socket socket;
-    private UserIO io;
+    private final SocketConnection socket;
+    private final ConsoleIO io;
 
-    public ChatClient(UserIO io, Socket socket) {
+    public ChatClient(ConsoleIO io, SocketConnection socket) {
         this.io = io;
         this.socket = socket;
     }
 
     public void writeToServer() {
         io.showInitialMessage(socket.getPort());
-        String message = io.getInput();
-        try {
-            PrintWriter printWriter = createPrintWriter();
-            writeMessageTillQuit(message, printWriter);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String name = io.getInput();
+        interfaces.Writer printWriter = createPrintWriter();
+        writeMessageToServerUntilQuit(name, printWriter);
         io.showExitMessage();
         closeSocket();
     }
 
-    private void writeMessageTillQuit(String name, PrintWriter printWriter) {
-        while (!name.contains("quit")) {
+    public void writeMessageToServerUntilQuit(String name, interfaces.Writer printWriter) {
+         while (!name.contains("quit")) {
             printWriter.println(name);
             printWriter.flush();
-            try {
-                InputStream inputFromClient = socket.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(inputFromClient);
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-                io.welcomeMessage(reader.readLine());
-                name = io.getInput();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            readInMessageFromServer();
+            name = io.getInput();
         }
     }
 
-    private PrintWriter createPrintWriter() throws IOException {
-        OutputStream outToServer = socket.getOutputStream();
-        return new PrintWriter(outToServer, true);
-    }
-
-    private void closeSocket() {
+    private void readInMessageFromServer() {
         try {
-            socket.close();
+            BufferedReader reader = createBufferedReader();
+            io.welcomeMessage(reader.readLine());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private RealPrintWriter createPrintWriter() {
+        OutputStream outToServer = socket.getOutputStream();
+        return new RealPrintWriter(outToServer);
+    }
+
+    private BufferedReader createBufferedReader() {
+        InputStream inputFromClient = socket.getInputStream();
+        InputStreamReader inputStreamReader = new InputStreamReader(inputFromClient);
+        return new BufferedReader(inputStreamReader);
+    }
+
+    private void closeSocket() {
+        socket.close();
     }
 }
