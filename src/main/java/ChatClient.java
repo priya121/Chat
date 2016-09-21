@@ -23,21 +23,21 @@ public class ChatClient {
     }
 
     public void writeMessageToServerUntilQuit(String name, StreamWriter printWriter) {
-         while (!name.contains("quit")) {
-            printWriter.println(name);
-            printWriter.flush();
-            readInMessageFromServer();
-            name = io.getInput();
+        while (!name.contains("quit")) {
+            try {
+                printWriter.println(name);
+                printWriter.flush();
+                name = io.getInput();
+                readInMessageFromServer();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 
-    private void readInMessageFromServer() {
-        try {
-            BufferedReader reader = createBufferedReader();
-            io.welcomeMessage(reader.readLine());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private void readInMessageFromServer() throws IOException {
+        BufferedReader reader = createBufferedReader();
+        io.welcomeMessage(reader.readLine());
     }
 
     private StreamWriter createPrintWriter() {

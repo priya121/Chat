@@ -15,14 +15,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ChatTest {
-    private ByteArrayOutputStream recordedOutput;
-    private PrintStream output;
+    private ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
+    private PrintStream output = new PrintStream(recordedOutput);
     private ServerSocketConnection serverSocket;
     private SocketConnection socketConnection;
 
     @Before public void setUp() throws IOException {
-        recordedOutput = new ByteArrayOutputStream();
-        output = new PrintStream(recordedOutput);
         serverSocket = new RealServerSocket(new ServerSocket(4444));
         Socket socket = new Socket("localhost", 4444);
         socketConnection = new RealSocket(socket);
@@ -74,15 +72,18 @@ public class ChatTest {
     }
 
     private void startChat(ChatClient client, ChatServer server) throws IOException {
+        createServerThread(server);
+        client.writeOutToAndReadInFromClient();
+    }
+
+    private void createServerThread(final ChatServer server) {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 server.readInFromAndWriteOutToClient();
             }
         };
-
         Executors.newSingleThreadExecutor().submit(runnable);
-        client.writeOutToAndReadInFromClient();
     }
 
     private UserIO createConsole(String userTypedText) {
