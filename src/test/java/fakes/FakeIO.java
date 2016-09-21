@@ -1,3 +1,5 @@
+package fakes;
+
 import interfaces.ConsoleIO;
 
 import java.util.LinkedList;

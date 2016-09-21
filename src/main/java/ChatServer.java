@@ -1,3 +1,4 @@
+import interfaces.ConsoleIO;
 import interfaces.ServerSocketConnection;
 import interfaces.SocketConnection;
 
@@ -5,14 +6,14 @@ import java.io.*;
 
 public class ChatServer {
     private ServerSocketConnection serverSocket;
-    private UserIO io;
+    private ConsoleIO io;
 
-    public ChatServer(ServerSocketConnection serverSocket, UserIO io) {
+    public ChatServer(ConsoleIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
         this.io = io;
     }
 
-    public void readInFromClient() {
+    public void readInFromAndWriteOutToClient() {
             SocketConnection server = serverSocket.accept();
             BufferedReader reader = createBufferedReader(server);
             readInputTillOver(reader, server);

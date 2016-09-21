@@ -1,6 +1,6 @@
 package interfaces;
 
-public interface Writer {
+public interface StreamWriter {
     void println(String name);
     void flush();
 }

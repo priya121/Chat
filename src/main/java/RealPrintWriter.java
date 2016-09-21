@@ -1,9 +1,9 @@
-import interfaces.Writer;
+import interfaces.StreamWriter;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-public class RealPrintWriter implements Writer {
+public class RealPrintWriter implements StreamWriter {
     private final PrintWriter printWriter;
     private static boolean AUTOFLUSH;
 

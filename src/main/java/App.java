@@ -12,11 +12,11 @@ public class App {
             Socket socket = new Socket("localhost", 4444);
             SocketConnection socketConnection = new RealSocket(socket);
             ChatClient client = new ChatClient(console, socketConnection);
-            client.writeToServer();
+            client.writeOutToAndReadInFromClient();
         } else if (args[0].equals("out")) {
             RealServerSocket serverSocket = new RealServerSocket(new ServerSocket(4444));
-            ChatServer serverThread = new ChatServer(serverSocket, console);
-            serverThread.readInFromClient();
+            ChatServer serverThread = new ChatServer(console, serverSocket);
+            serverThread.readInFromAndWriteOutToClient();
         }
     }
 }

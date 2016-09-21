@@ -1,93 +1,32 @@
+import fakes.FakeIO;
+import fakes.FakeServerSocket;
+import fakes.FakeSocket;
 import interfaces.ServerSocketConnection;
-import interfaces.SocketConnection;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.Executors;
+import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static junit.framework.TestCase.assertTrue;
 
 public class ChatServerTest {
-    private ByteArrayOutputStream recordedOutput;
-    private PrintStream output;
-    private ServerSocketConnection serverSocket;
-    private Socket socket;
-    private SocketConnection socketConnection;
 
-    @Before public void setUp() throws IOException {
-        recordedOutput = new ByteArrayOutputStream();
-        output = new PrintStream(recordedOutput);
-        serverSocket = new RealServerSocket(new ServerSocket(4444));
-        socket = new Socket("localhost", 4444);
-        socketConnection = new RealSocket(socket);
-    }
+     @Test
+     public void getsInputFromClient() {
+          FakeIO fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
+          FakeSocket socket = new FakeSocket();
+          ServerSocketConnection socketConnection = new FakeServerSocket(socket);
+          ChatServer server = new ChatServer(fakeInput, socketConnection);
+          server.readInFromAndWriteOutToClient();
+          assertTrue(socket.getOutputStream);
+     }
 
-    @Test
-    public void makesAConnection() throws IOException {
-        UserIO console = createConsole("quit\n");
-        ChatClient client = new ChatClient(console, socketConnection);
-        client.writeToServer();
-        assertTrue(recordedOutput.toString().contains("You're connected on port 4444\n"));
-    }
-
-    @Test
-    public void displaysUserJoinedMessageOnServer() throws IOException {
-        UserIO console = createConsole("Priya\nquit\n");
-        ChatClient client = new ChatClient(console, socketConnection);
-        ChatServer server = new ChatServer(serverSocket, console);
-        startChat(client, server);
-        assertEquals("You're connected on port 4444\n" +
-                     "Enter your name to register:\n" +
-                     "type quit to exit\n" +
-                     "Priya has now joined the chat room\n" +
-                     "Welcome Priya\n" +
-                     "Bye!\n", recordedOutput.toString());
-    }
-
-    @Test
-    public void quitsConnectionWhenUserTypesQuit() throws IOException {
-        UserIO input = createConsole("quit\n");
-        ChatClient client = new ChatClient(input, socketConnection);
-        ChatServer server = new ChatServer(serverSocket, input);
-        startChat(client, server);
-        assertTrue(recordedOutput.toString().contains("Bye!\n"));
-    }
-    
-    @Test
-    public void writesWelcomeMessageBackToUser() throws IOException {
-        UserIO console = createConsole("Priya\nquit\n");
-        ChatClient client = new ChatClient(console, socketConnection);
-        ChatServer server = new ChatServer(serverSocket, console);
-        startChat(client, server);
-        assertEquals("You're connected on port 4444\n" +
-                "Enter your name to register:\n" +
-                "type quit to exit\n" +
-                "Priya has now joined the chat room\n" +
-                "Welcome Priya\n" +
-                "Bye!\n", recordedOutput.toString());
-    }
-
-    private void startChat(ChatClient client, ChatServer server) throws IOException {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                server.readInFromClient();
-            }
-        };
-
-        Executors.newSingleThreadExecutor().submit(runnable);
-        client.writeToServer();
-    }
-
-    private UserIO createConsole(String userTypedText) {
-        ByteArrayInputStream userInput = new ByteArrayInputStream(userTypedText.getBytes());
-        return new UserIO(userInput, output);
-    }
+     @Test
+     public void writesOutputToClient() {
+          FakeIO fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
+          FakeSocket socket = new FakeSocket();
+          ServerSocketConnection socketConnection = new FakeServerSocket(socket);
+          ChatServer server = new ChatServer(fakeInput, socketConnection);
+          server.readInFromAndWriteOutToClient();
+          assertTrue(socket.getInputStream);
+     }
 }

@@ -1,5 +1,6 @@
 import interfaces.ConsoleIO;
 import interfaces.SocketConnection;
+import interfaces.StreamWriter;
 
 import java.io.*;
 
@@ -12,16 +13,16 @@ public class ChatClient {
         this.socket = socket;
     }
 
-    public void writeToServer() {
+    public void writeOutToAndReadInFromClient() {
         io.showInitialMessage(socket.getPort());
         String name = io.getInput();
-        interfaces.Writer printWriter = createPrintWriter();
+        StreamWriter printWriter = createPrintWriter();
         writeMessageToServerUntilQuit(name, printWriter);
         io.showExitMessage();
         closeSocket();
     }
 
-    public void writeMessageToServerUntilQuit(String name, interfaces.Writer printWriter) {
+    public void writeMessageToServerUntilQuit(String name, StreamWriter printWriter) {
          while (!name.contains("quit")) {
             printWriter.println(name);
             printWriter.flush();
@@ -39,7 +40,7 @@ public class ChatClient {
         }
     }
 
-    private RealPrintWriter createPrintWriter() {
+    private StreamWriter createPrintWriter() {
         OutputStream outToServer = socket.getOutputStream();
         return new RealPrintWriter(outToServer);
     }

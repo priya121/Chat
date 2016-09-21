@@ -1,3 +1,5 @@
+package fakes;
+
 import interfaces.ServerSocketConnection;
 import interfaces.SocketConnection;
 
