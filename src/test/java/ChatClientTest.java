@@ -2,6 +2,7 @@ import fakes.FakeIO;
 import fakes.FakePrintStreamWriter;
 import fakes.FakeServerSocket;
 import fakes.FakeSocket;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -10,29 +11,52 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ChatClientTest {
-    private FakeSocket socket = new FakeSocket();
+    private FakeIO fakeInput;
+    private FakeSocket socket;
     private ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
     private PrintStream output = new PrintStream(recordedOutput);
 
+    @Before
+    public void setUp() throws IOException {
+        socket = new FakeSocket();
+        fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
+    }
+
     @Test
     public void getsInputStreamFromServer() {
-        FakeIO fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
         ChatClient client = new ChatClient(fakeInput, socket);
+        socket.getInputStream = false;
+        client.writeOutToAndReadInFromClient();
+        assertTrue(socket.getOutputStream);
+    }
+
+    @Test
+    public void createsOutputStreamToSendToServer() {
+        ChatClient client = new ChatClient(fakeInput, socket);
+        socket.getOutputStream = false;
         client.writeOutToAndReadInFromClient();
         assertTrue(socket.getOutputStream);
     }
 
     @Test
     public void closesSocketAfterUserEntersQuit() {
-        FakeIO fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
         ChatClient client = new ChatClient(fakeInput, socket);
         socket.closed = false;
         client.writeOutToAndReadInFromClient();
         assertTrue(socket.closed);
+    }
+
+    @Test
+    public void socketNotClosedUntilStreamReadFromClient() {
+        UserIO console = createConsole("Priya\nquit\n");
+        ChatClient client = new ChatClient(console, socket);
+        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(socket);
+        socket.closed = false;
+        client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
+        assertFalse(socket.closed);
     }
 
     @Test

@@ -1,32 +1,38 @@
 import fakes.FakeIO;
 import fakes.FakeServerSocket;
 import fakes.FakeSocket;
-import interfaces.ServerSocketConnection;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
 
 public class ChatServerTest {
+    private FakeIO fakeInput;
+    private FakeSocket socket;
+    private FakeServerSocket socketConnection;
 
+    @Before
+     public void setUp() throws IOException {
+         fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
+         socket = new FakeSocket();
+         socketConnection = new FakeServerSocket(socket);
+     }
      @Test
-     public void getsInputFromClient() {
-          FakeIO fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
-          FakeSocket socket = new FakeSocket();
-          ServerSocketConnection socketConnection = new FakeServerSocket(socket);
+     public void getsInputStreamFromClient() {
           ChatServer server = new ChatServer(fakeInput, socketConnection);
+          socket.getInputStream = false;
           server.readInFromAndWriteOutToClient();
-          assertTrue(socket.getOutputStream);
+          assertTrue(socket.getInputStream);
      }
 
      @Test
-     public void writesOutputToClient() {
-          FakeIO fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
-          FakeSocket socket = new FakeSocket();
-          ServerSocketConnection socketConnection = new FakeServerSocket(socket);
+     public void createsOutputStreamToSendToClient() {
           ChatServer server = new ChatServer(fakeInput, socketConnection);
+          socket.getOutputStream = false;
           server.readInFromAndWriteOutToClient();
-          assertTrue(socket.getInputStream);
+          assertTrue(socket.getOutputStream);
      }
 }

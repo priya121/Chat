@@ -15,6 +15,7 @@ public class FakeSocket implements SocketConnection {
 
     public FakeSocket() {
         this.getInputStream = false;
+        this.getOutputStream = false;
         this.closed = false;
     }
 
