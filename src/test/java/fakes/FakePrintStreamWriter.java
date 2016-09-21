@@ -1,15 +1,17 @@
+package fakes;
+
 import interfaces.SocketConnection;
-import interfaces.Writer;
+import interfaces.StreamWriter;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-public class FakePrintWriter implements Writer {
+public class FakePrintStreamWriter implements StreamWriter {
 
     private final PrintWriter printWriter;
     private final OutputStream outputStream;
 
-    public FakePrintWriter(SocketConnection socketConnection) {
+    public FakePrintStreamWriter(SocketConnection socketConnection) {
         this.outputStream = socketConnection.getOutputStream();
         this.printWriter = new PrintWriter(outputStream, true);
     }
