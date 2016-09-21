@@ -1,9 +1,10 @@
+import interfaces.ConsoleIO;
+
 import java.io.*;
 
-public class UserIO {
-
+public class UserIO implements ConsoleIO {
     private final BufferedReader input;
-    private PrintStream output;
+    private final PrintStream output;
 
     public UserIO(InputStream input, PrintStream output) {
         this.input = new BufferedReader(new InputStreamReader(input));
@@ -11,15 +12,15 @@ public class UserIO {
     }
 
     public String getInput() {
-        String message = "";
         try {
-            message = input.readLine();
-            return message;
+            return input.readLine();
         } catch (IOException e) {
-            showOutput("No input to read");
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
-        return message;
+    }
+
+    public void showOutput(String message) {
+        output.println(message);
     }
 
     public void showInitialMessage(int port) {
@@ -39,11 +40,6 @@ public class UserIO {
     public void welcomeMessage(String name) {
         showOutput("Welcome " + name);
     }
-
-    private void showOutput(String message) {
-        output.println(message);
-    }
-
 
 }
 

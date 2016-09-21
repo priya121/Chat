@@ -1,3 +1,5 @@
+import interfaces.ServerSocketConnection;
+import interfaces.SocketConnection;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,20 +17,22 @@ import static org.junit.Assert.assertTrue;
 public class ChatServerTest {
     private ByteArrayOutputStream recordedOutput;
     private PrintStream output;
-    private ServerSocket serverSocket;
+    private ServerSocketConnection serverSocket;
     private Socket socket;
+    private SocketConnection socketConnection;
 
     @Before public void setUp() throws IOException {
         recordedOutput = new ByteArrayOutputStream();
         output = new PrintStream(recordedOutput);
-        serverSocket = new ServerSocket(4444);
+        serverSocket = new RealServerSocket(new ServerSocket(4444));
         socket = new Socket("localhost", 4444);
+        socketConnection = new RealSocket(socket);
     }
 
     @Test
     public void makesAConnection() throws IOException {
         UserIO console = createConsole("quit\n");
-        ChatClient client = new ChatClient(console, socket);
+        ChatClient client = new ChatClient(console, socketConnection);
         client.writeToServer();
         assertTrue(recordedOutput.toString().contains("You're connected on port 4444\n"));
     }
@@ -36,7 +40,7 @@ public class ChatServerTest {
     @Test
     public void displaysUserJoinedMessageOnServer() throws IOException {
         UserIO console = createConsole("Priya\nquit\n");
-        ChatClient client = new ChatClient(console, socket);
+        ChatClient client = new ChatClient(console, socketConnection);
         ChatServer server = new ChatServer(serverSocket, console);
         startChat(client, server);
         assertEquals("You're connected on port 4444\n" +
@@ -50,7 +54,7 @@ public class ChatServerTest {
     @Test
     public void quitsConnectionWhenUserTypesQuit() throws IOException {
         UserIO input = createConsole("quit\n");
-        ChatClient client = new ChatClient(input, socket);
+        ChatClient client = new ChatClient(input, socketConnection);
         ChatServer server = new ChatServer(serverSocket, input);
         startChat(client, server);
         assertTrue(recordedOutput.toString().contains("Bye!\n"));
@@ -59,7 +63,7 @@ public class ChatServerTest {
     @Test
     public void writesWelcomeMessageBackToUser() throws IOException {
         UserIO console = createConsole("Priya\nquit\n");
-        ChatClient client = new ChatClient(console, socket);
+        ChatClient client = new ChatClient(console, socketConnection);
         ChatServer server = new ChatServer(serverSocket, console);
         startChat(client, server);
         assertEquals("You're connected on port 4444\n" +

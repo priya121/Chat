@@ -1,43 +1,32 @@
+import interfaces.ServerSocketConnection;
+import interfaces.SocketConnection;
+
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 public class ChatServer {
-    private ServerSocket serverSocket;
+    private ServerSocketConnection serverSocket;
     private UserIO io;
 
-    public ChatServer(ServerSocket serverSocket, UserIO io) {
+    public ChatServer(ServerSocketConnection serverSocket, UserIO io) {
         this.serverSocket = serverSocket;
         this.io = io;
     }
 
     public void readInFromClient() {
-        Socket server = makeConnection(serverSocket);
-        BufferedReader reader = createBufferedReader(server);
-        readInputTillOver(reader, server);
-        io.showExitMessage();
-        closeSocket();
+            SocketConnection server = serverSocket.accept();
+            BufferedReader reader = createBufferedReader(server);
+            readInputTillOver(reader, server);
+            io.showExitMessage();
+            closeSocket();
     }
 
-    private Socket makeConnection(ServerSocket serverSocket) {
-        try {
-            return serverSocket.accept();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private BufferedReader createBufferedReader(Socket server) {
-        try {
+    private BufferedReader createBufferedReader(SocketConnection server) {
             InputStream inputStream = server.getInputStream();
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             return new BufferedReader(inputStreamReader);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
-    private void readInputTillOver(BufferedReader reader, Socket server) {
+    private void readInputTillOver(BufferedReader reader, SocketConnection server) {
         try {
             String name = reader.readLine();
             while (name != null) {
@@ -50,22 +39,14 @@ public class ChatServer {
         }
     }
 
-    private void writeOutToClient(String message, Socket socket) {
-        try {
+    private void writeOutToClient(String message, SocketConnection socket) {
             OutputStream outToServer = socket.getOutputStream();
             PrintWriter printWriter = new PrintWriter(outToServer, true);
             printWriter.println(message);
             printWriter.flush();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     private void closeSocket() {
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        serverSocket.close();
     }
 }
