@@ -1,75 +1,53 @@
+import interfaces.ConsoleIO;
+import interfaces.ServerSocketConnection;
+import interfaces.SocketConnection;
+
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 public class ChatServer {
-    private ServerSocket serverSocket;
-    private UserIO io;
+    private ServerSocketConnection serverSocket;
+    private ConsoleIO io;
 
-    public ChatServer(ServerSocket serverSocket, UserIO io) {
+    public ChatServer(ConsoleIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
         this.io = io;
     }
 
-    public Socket makeConnection(ServerSocket serverSocket) {
-        try {
-            Socket socket = serverSocket.accept();
-            return socket;
-        } catch (IOException e) {
-            io.showOutput("Error in connecting socket");
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public void readInFromClient() {
-        try {
-            Socket server = makeConnection(serverSocket);
+    public void readInFromAndWriteOutToClient() {
+            SocketConnection server = serverSocket.accept();
             BufferedReader reader = createBufferedReader(server);
             readInputTillOver(reader, server);
             io.showExitMessage();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        closeSocket();
+            closeSocket();
     }
 
-    private void readInputTillOver(BufferedReader reader, Socket server) {
+    private BufferedReader createBufferedReader(SocketConnection server) {
+            InputStream inputStream = server.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            return new BufferedReader(inputStreamReader);
+    }
+
+    private void readInputTillOver(BufferedReader reader, SocketConnection server) {
         try {
             String name = reader.readLine();
             while (name != null) {
-                io.showOutput(name + " has now joined the chat room");
+                io.userJoinedMessage(name);
                 writeOutToClient(name , server);
                 name = reader.readLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
     }
 
-    private BufferedReader createBufferedReader(Socket server) throws IOException {
-        InputStream inputStream = server.getInputStream();
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader readInput = new BufferedReader(inputStreamReader);
-        return readInput;
-    }
-
-    private void writeOutToClient(String message, Socket socket) {
-        try {
+    private void writeOutToClient(String message, SocketConnection socket) {
             OutputStream outToServer = socket.getOutputStream();
-            OutputStreamWriter outputWriter = new OutputStreamWriter(outToServer);
-            outputWriter.write("Welcome " + message);
-            outputWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            PrintWriter printWriter = new PrintWriter(outToServer, true);
+            printWriter.println(message);
+            printWriter.flush();
     }
 
     private void closeSocket() {
-        try {
-            serverSocket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        serverSocket.close();
     }
 }
