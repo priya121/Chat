@@ -27,8 +27,8 @@ public class ChatClient {
             try {
                 printWriter.println(name);
                 printWriter.flush();
-                name = io.getInput();
                 readInMessageFromServer();
+                name = io.getInput();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

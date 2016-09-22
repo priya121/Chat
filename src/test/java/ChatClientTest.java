@@ -85,7 +85,6 @@ public class ChatClientTest {
                                                 "Bye!\n");
     }
 
-
     private UserIO createConsole(String userTypedText) {
         ByteArrayInputStream userInput = new ByteArrayInputStream(userTypedText.getBytes());
         return new UserIO(userInput, output);
