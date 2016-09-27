@@ -1,7 +1,7 @@
 import java.io.IOException;
 
 public class AppCreator {
-    private UserIO console;
+    private final UserIO console;
 
     public AppCreator(UserIO console) {
         this.console = console;

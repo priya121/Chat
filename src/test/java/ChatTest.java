@@ -14,11 +14,11 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
 
 public class ChatTest {
-    private ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
-    private PrintStream output = new PrintStream(recordedOutput);
     private ServerSocketConnection serverSocket;
     private SocketConnection socketConnection;
     private Socket socket;
+    private final ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
+    private final PrintStream output = new PrintStream(recordedOutput);
 
     @Before public void setUp() throws IOException {
         serverSocket = new RealServerSocket(new ServerSocket(4444));

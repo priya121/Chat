@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 public class ChatServer {
     private final ServerSocketConnection serverSocket;
     public List<User> users;
-    private UserIO io;
+    private final UserIO io;
     private SocketConnection client;
 
     public ChatServer(UserIO io, ServerSocketConnection serverSocket) {

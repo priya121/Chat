@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 public class ServerApp {
-    private UserIO console;
+    private final UserIO console;
 
     public ServerApp (UserIO console) {
         this.console = console;
