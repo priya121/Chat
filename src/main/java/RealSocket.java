@@ -7,7 +7,6 @@ import java.io.UncheckedIOException;
 import java.net.Socket;
 
 public class RealSocket implements SocketConnection {
-
     private final Socket socket;
 
     public RealSocket(Socket socket) {

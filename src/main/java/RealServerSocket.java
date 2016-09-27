@@ -6,7 +6,7 @@ import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 
 public class RealServerSocket implements ServerSocketConnection {
-    private ServerSocket serverSocket;
+    private final ServerSocket serverSocket;
 
     public RealServerSocket(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;

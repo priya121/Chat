@@ -19,11 +19,11 @@ import static org.junit.Assert.assertEquals;
 public class ChatServerTest {
     private FakeSocketSpy socket;
     private FakeServerSocket socketConnection;
-    private ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
-    private PrintStream output = new PrintStream(recordedOutput);
     private RealSocket realSocket;
     private RealServerSocket serverSocket;
     private UserIO console;
+    private final ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
+    private final PrintStream output = new PrintStream(recordedOutput);
 
     @Before
     public void setUp() throws IOException {

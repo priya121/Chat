@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class ChatServer {
     private final ServerSocketConnection serverSocket;
     public List<User> users;
-    private UserIO io;
+    private final UserIO io;
 
     public ChatServer(UserIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
@@ -70,24 +70,24 @@ public class ChatServer {
 
     private void createNewUsersList(String name, String nameToFind) {
         User user = users.stream()
-                .filter(person -> person.getName().equals(nameToFind))
-                .findAny().orElse(new User(name));
+                         .filter(person -> person.getName().equals(nameToFind))
+                         .findAny().orElse(new User(name));
         users.add(user);
         users = getDistinctUsers();
     }
 
     private List<User> getDistinctUsers() {
         return users.stream()
-                .map(User::getName)
-                .distinct()
-                .map(User::new)
-                .collect(Collectors.toList());
+                    .map(User::getName)
+                    .distinct()
+                    .map(User::new)
+                    .collect(Collectors.toList());
     }
 
     private void existingUsersWelcomeMessage(String nameToFind) {
         users.stream()
-                .filter(person -> person.getName().equals(nameToFind))
-                .findAny()
-                .ifPresent(person -> io.showWelcomeBackMessage(person.getName()));
+             .filter(person -> person.getName().equals(nameToFind))
+             .findAny()
+             .ifPresent(person -> io.showWelcomeBackMessage(person.getName()));
     }
 }
