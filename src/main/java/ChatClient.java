@@ -1,6 +1,3 @@
-import interfaces.SocketConnection;
-import interfaces.StreamWriter;
-
 import java.io.*;
 
 public class ChatClient {

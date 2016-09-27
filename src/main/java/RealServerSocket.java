@@ -1,6 +1,3 @@
-import interfaces.ServerSocketConnection;
-import interfaces.SocketConnection;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.ServerSocket;

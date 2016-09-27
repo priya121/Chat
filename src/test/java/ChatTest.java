@@ -1,5 +1,3 @@
-import interfaces.ServerSocketConnection;
-import interfaces.SocketConnection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

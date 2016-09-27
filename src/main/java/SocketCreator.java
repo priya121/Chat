@@ -1,6 +1,3 @@
-import interfaces.Exiter;
-import interfaces.SocketConnection;
-
 public class SocketCreator {
     private final UserIO console;
     private final SocketConnection socket;

@@ -1,5 +1,3 @@
-import interfaces.Exiter;
-
 public class FakeExiter implements Exiter {
     private final UserIO console;
     public boolean called = false;
