@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class FakeSocketSpy implements SocketConnection {
-
     public boolean getOutputStream;
     public boolean getInputStream;
     public boolean closed;

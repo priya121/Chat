@@ -4,12 +4,14 @@ import interfaces.SocketConnection;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class ChatServer {
     private final ServerSocketConnection serverSocket;
     public List<User> users;
     private UserIO io;
+    private SocketConnection client;
 
     public ChatServer(UserIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
@@ -19,13 +21,23 @@ public class ChatServer {
 
     public void start() {
         while (true) {
-            readInFromAndWriteOutToClient();
+            client = serverSocket.accept();
+            createServerThread(client);
         }
     }
 
-    public void readInFromAndWriteOutToClient() {
+    private void createServerThread(SocketConnection client) {
+        Runnable runnable = new Runnable() {
+
+            public void run() {
+                readInFromAndWriteOutToClient(client);
+            }
+        };
+        Executors.newSingleThreadExecutor().submit(runnable);
+    }
+
+    public void readInFromAndWriteOutToClient(SocketConnection client) {
         try {
-            SocketConnection client = serverSocket.accept();
             BufferedReader reader = createBufferedReader(client);
             readInputUntilOver(reader, client);
             io.showExitMessage();
@@ -89,5 +101,9 @@ public class ChatServer {
                 .filter(person -> person.getName().equals(nameToFind))
                 .findAny()
                 .ifPresent(person -> io.showWelcomeBackMessage(person.getName()));
+    }
+
+    public void exit() {
+        client.close();
     }
 }

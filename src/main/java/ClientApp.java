@@ -13,7 +13,7 @@ public class ClientApp {
     }
 
     public void create() throws IOException {
-        SocketConnection socket = new RealSocket(new Socket("localhost", 4444));
+        SocketConnection socket = new RealSocket(new Socket("192.168.0.3.", 4444));
         SocketConnection socketConnection = new SocketCreator(console, socket).create(exit);
         ChatClient client = new ChatClient(console, socketConnection);
         client.writeOutToAndReadInFromClient();

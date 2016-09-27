@@ -48,7 +48,7 @@ public class UserIO {
     }
 
     public void showWelcomeBackMessage(String name) {
-        showOutput("Welcome back" + name);
+        showOutput("Welcome back " + name);
     }
 
     public void showConnectionMessage() {

@@ -49,15 +49,17 @@ public class ChatTest {
         ChatClient client = new ChatClient(console, socketConnection);
         ChatServer server = new ChatServer(console, serverSocket);
         startChat(client, server);
+        server.exit();
         assertThat(recordedOutput.toString(), containsString("Priya has now joined the chat room\n"));
     }
 
     @Test
     public void quitsConnectionWhenUserTypesQuit() throws IOException {
-        UserIO input = createConsole(".\n");
+        UserIO input = createConsole("Priya\n.\n.\n");
         ChatClient client = new ChatClient(input, socketConnection);
         ChatServer server = new ChatServer(input, serverSocket);
         startChat(client, server);
+        server.exit();
         assertThat(recordedOutput.toString(), containsString("Bye!\n"));
     }
     
@@ -67,6 +69,7 @@ public class ChatTest {
         ChatClient client = new ChatClient(console, socketConnection);
         ChatServer server = new ChatServer(console, serverSocket);
         startChat(client, server);
+        server.exit();
         assertThat(recordedOutput.toString(), containsString("Welcome Priya\n"));
     }
 
@@ -76,6 +79,7 @@ public class ChatTest {
         ChatClient client = new ChatClient(console, socketConnection);
         ChatServer server = new ChatServer(console, serverSocket);
         startChat(client, server);
+        server.exit();
         assertThat(recordedOutput.toString(), containsString("Hi\n"));
     }
 
@@ -88,7 +92,7 @@ public class ChatTest {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                server.readInFromAndWriteOutToClient();
+                server.start();
             }
         };
         Executors.newSingleThreadExecutor().submit(runnable);
