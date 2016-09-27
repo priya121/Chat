@@ -1,8 +1,6 @@
-import interfaces.ConsoleIO;
-
 import java.io.*;
 
-public class UserIO implements ConsoleIO {
+public class UserIO {
     private final BufferedReader input;
     private final PrintStream output;
 
@@ -19,14 +17,10 @@ public class UserIO implements ConsoleIO {
         }
     }
 
-    public void showOutput(String message) {
-        output.println(message);
-    }
-
     public void showInitialMessage(int port) {
         showOutput("You're connected on port " + String.valueOf(port) + "\n" +
                    "Enter your name to register:\n" +
-                   "type quit to exit");
+                   "type . to exit:\n");
     }
 
     public void showExitMessage() {
@@ -39,6 +33,30 @@ public class UserIO implements ConsoleIO {
 
     public void welcomeMessage(String name) {
         showOutput("Welcome " + name);
+    }
+
+    public void chatStartedMessage() {
+        showOutput("Chat started, type . to quit App");
+    }
+
+    public void showInvalidInputMessage() {
+        showOutput("Invalid start message");
+    }
+
+    public void showName(String name) {
+        showOutput(name);
+    }
+
+    public void showWelcomeBackMessage(String name) {
+        showOutput("Welcome back" + name);
+    }
+
+    public void showConnectionMessage() {
+        showOutput("Type y to start chat or n to exit:");
+    }
+
+    private void showOutput(String message) {
+        output.println(message);
     }
 
 }

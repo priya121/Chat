@@ -7,13 +7,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class FakeSocket implements SocketConnection {
+public class FakeSocketSpy implements SocketConnection {
 
     public boolean getOutputStream;
     public boolean getInputStream;
     public boolean closed;
 
-    public FakeSocket() {
+    public FakeSocketSpy() {
         this.getInputStream = false;
         this.getOutputStream = false;
         this.closed = false;

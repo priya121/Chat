@@ -6,13 +6,6 @@ public class User {
         this.name = name;
     }
 
-    public User() {
-    }
-
-    public void setName(String givenName) {
-        name = givenName;
-    }
-
     public String getName() {
         return name;
     }
