@@ -1,5 +1,3 @@
-import fakes.FakePrintStreamWriter;
-import fakes.FakeSocketSpy;
 import org.junit.Before;
 import org.junit.Test;
 

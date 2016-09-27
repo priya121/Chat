@@ -1,5 +1,3 @@
-package fakes;
-
 import interfaces.SocketConnection;
 
 import java.io.ByteArrayInputStream;

@@ -1,4 +1,3 @@
-import fakes.FakeSocketSpy;
 import interfaces.Exiter;
 import interfaces.SocketConnection;
 import org.junit.Test;
