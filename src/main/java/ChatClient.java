@@ -1,7 +1,7 @@
 import java.io.*;
 
 public class ChatClient {
-    private SocketConnection socket;
+    private final SocketConnection socket;
     private final UserIO io;
 
     public ChatClient(UserIO io, SocketConnection socket) {
