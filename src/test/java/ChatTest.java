@@ -79,7 +79,7 @@ public class ChatTest {
         startChat(client, server);
         server.exit();
         assertThat(recordedOutput.toString(), containsString("Priya: Hi\n"));
-        assertThat(recordedOutput.toString(), containsString("Priya: How Are You?\n"));
+        assertThat(recordedOutput.toString(), containsString("Priya: How are you?\n"));
     }
 
     private void startChat(ChatClient client, ChatServer server) throws IOException {
