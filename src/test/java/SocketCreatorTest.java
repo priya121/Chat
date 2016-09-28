@@ -1,6 +1,3 @@
-import fakes.FakeSocketSpy;
-import interfaces.Exiter;
-import interfaces.SocketConnection;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -13,8 +10,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class SocketCreatorTest {
-    private ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
-    private PrintStream output = new PrintStream(recordedOutput);
+    private final ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
+    private final PrintStream output = new PrintStream(recordedOutput);
 
     @Test
     public void createsASocketGivenAnIPAddressAndPort() throws IOException {

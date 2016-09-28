@@ -1,6 +1,3 @@
-import interfaces.Exiter;
-import interfaces.SocketConnection;
-
 public class SocketCreator {
     private final UserIO console;
     private final SocketConnection socket;
@@ -22,7 +19,6 @@ public class SocketCreator {
     }
 
     private void exit(Exiter exit) {
-        console.showExitMessage();
         exit.exit();
     }
 

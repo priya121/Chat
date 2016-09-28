@@ -1,8 +1,3 @@
-package fakes;
-
-import interfaces.SocketConnection;
-import interfaces.StreamWriter;
-
 import java.io.OutputStream;
 import java.io.PrintWriter;
 

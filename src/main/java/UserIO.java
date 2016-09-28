@@ -23,8 +23,8 @@ public class UserIO {
                    "type . to exit:\n");
     }
 
-    public void showExitMessage() {
-        showOutput("Bye!");
+    public void showExitMessage(String name) {
+        showOutput("Bye " + name + "! " + name + " has now left the chat.");
     }
 
     public void userJoinedMessage(String name) {
@@ -43,19 +43,15 @@ public class UserIO {
         showOutput("Invalid start message");
     }
 
-    public void showName(String name) {
-        showOutput(name);
-    }
-
     public void showWelcomeBackMessage(String name) {
-        showOutput("Welcome back" + name);
+        showOutput("Welcome back " + name);
     }
 
     public void showConnectionMessage() {
         showOutput("Type y to start chat or n to exit:");
     }
 
-    private void showOutput(String message) {
+    public void showOutput(String message) {
         output.println(message);
     }
 

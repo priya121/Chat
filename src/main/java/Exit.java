@@ -1,5 +1,3 @@
-import interfaces.Exiter;
-
 public class Exit implements Exiter{
 
     public void exit() {

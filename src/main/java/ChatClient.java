@@ -1,6 +1,3 @@
-import interfaces.SocketConnection;
-import interfaces.StreamWriter;
-
 import java.io.*;
 
 public class ChatClient {
@@ -17,7 +14,6 @@ public class ChatClient {
         String name = io.getInput();
         StreamWriter printWriter = createPrintWriter();
         writeMessageToServerUntilQuit(name, printWriter);
-        io.showExitMessage();
         closeSocket();
     }
 
@@ -28,7 +24,8 @@ public class ChatClient {
                 printWriter.flush();
                 readInMessageFromServer();
                 io.chatStartedMessage();
-                startChat(printWriter);
+                startChat(name, printWriter);
+                io.showExitMessage(name);
                 name = io.getInput();
                 writeMessageToServerUntilQuit(name, printWriter);
             }
@@ -37,12 +34,12 @@ public class ChatClient {
         }
     }
 
-    private void startChat(StreamWriter printWriter) {
+    private void startChat(String name, StreamWriter printWriter) throws IOException {
         String messages = io.getInput();
         if (!messages.contains(".")) {
-            printWriter.println(messages);
+            printWriter.println(name + ": " + messages);
             printWriter.flush();
-            startChat(printWriter);
+            startChat(name, printWriter);
         }
     }
 
