@@ -123,12 +123,7 @@ public class ChatServerTest {
     }
 
     private void createServerThread(final ChatServer server) {
-        Runnable runnable = new Runnable() {
-
-            public void run() {
-                server.start();
-            }
-        };
+        Runnable runnable = () -> server.start();
         Executors.newSingleThreadExecutor().submit(runnable);
     }
 }

@@ -6,13 +6,14 @@ import java.util.stream.Collectors;
 
 public class ChatServer {
     private final ServerSocketConnection serverSocket;
-    public List<User> users;
-    private final UserIO io;
     private SocketConnection client;
+    public List<User> users;
+    private final UserIO console;
+    private final boolean AUTOFLUSH = true;
 
     public ChatServer(UserIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
-        this.io = io;
+        this.console = io;
         this.users = new ArrayList<>();
     }
 
@@ -30,11 +31,29 @@ public class ChatServer {
 
     public void readInFromAndWriteOutToClient(SocketConnection client) {
         try {
-            BufferedReader reader = createBufferedReader(client);
-            readInputUntilOver(reader, client);
-            io.showExitMessage();
+            readInputUntilOver(client);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private void readInputUntilOver(SocketConnection client) throws IOException {
+        BufferedReader reader = createBufferedReader(client);
+        PrintWriter writer = createPrintWriter(client);
+        String fromClient = reader.readLine();
+        String originalName = fromClient;
+        startChat(reader, writer, fromClient);
+        console.showExitMessage(originalName);
+    }
+
+    private void startChat(BufferedReader reader, PrintWriter writer, String fromClient) throws IOException {
+        if (fromClient != null) {
+            console.userJoinedMessage(fromClient);
+            existingUsersWelcomeMessage(fromClient);
+            createNewUsersList(fromClient);
+            sendWelcomeMessage(writer, fromClient);
+            fromClient = mainChat(reader);
+            startChat(reader, writer, fromClient);
         }
     }
 
@@ -44,37 +63,28 @@ public class ChatServer {
         return new BufferedReader(inputStreamReader);
     }
 
-    private void readInputUntilOver(BufferedReader reader, SocketConnection server) throws IOException {
-        String name = reader.readLine();
-        while (name != null) {
-            String nameToFind = name;
-            io.userJoinedMessage(name);
-            existingUsersWelcomeMessage(nameToFind);
-            createNewUsersList(name, nameToFind);
-            sendWelcomeMessage(name , server);
-            name = chat(reader);
-        }
+    private PrintWriter createPrintWriter(SocketConnection client) {
+        OutputStream outToServer = client.getOutputStream();
+        return new PrintWriter(outToServer, AUTOFLUSH);
     }
 
-    private String chat(BufferedReader reader) throws IOException {
+    private String mainChat(BufferedReader reader) throws IOException {
         String messageFromUser = reader.readLine();
         while (messageFromUser != null) {
-            io.showOutput(messageFromUser);
+            console.showOutput(messageFromUser);
             messageFromUser = reader.readLine();
         }
         return messageFromUser;
     }
 
-    private void sendWelcomeMessage(String message, SocketConnection socket) {
-        OutputStream outToServer = socket.getOutputStream();
-        PrintWriter printWriter = new PrintWriter(outToServer, true);
-        printWriter.println(message);
-        printWriter.flush();
+    private void sendWelcomeMessage(PrintWriter writer, String message) {
+        writer.println(message);
+        writer.flush();
     }
 
-    private void createNewUsersList(String name, String nameToFind) {
+    private void createNewUsersList(String name) {
         User user = users.stream()
-                         .filter(person -> person.getName().equals(nameToFind))
+                         .filter(person -> person.getName().equals(name))
                          .findAny().orElse(new User(name));
         users.add(user);
         users = getDistinctUsers();
@@ -92,7 +102,7 @@ public class ChatServer {
         users.stream()
              .filter(person -> person.getName().equals(nameToFind))
              .findAny()
-             .ifPresent(person -> io.showWelcomeBackMessage(person.getName()));
+             .ifPresent(person -> console.showWelcomeBackMessage(person.getName()));
     }
 
     public void exit() {

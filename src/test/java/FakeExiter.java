@@ -9,6 +9,7 @@ public class FakeExiter implements Exiter {
     @Override
     public void exit() {
         called = true;
-        console.showExitMessage();
+        String name = "Sarah";
+        console.showExitMessage(name);
     }
 }

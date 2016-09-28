@@ -65,7 +65,7 @@ public class ChatClientTest {
                                        "type . to exit:\n\n" +
                                        "Welcome Priya\n" +
                                        "Chat started, type . to quit App\n" +
-                                       "Bye!\n");
+                                       "Bye Priya! Priya has now left the chat.\n");
     }
 
     @Test
@@ -75,6 +75,11 @@ public class ChatClientTest {
         FakePrintStreamWriter printWriter = new FakePrintStreamWriter(socket);
         client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
         assertThat(printWriter.writtenToStream, containsString("how are you"));
+    }
+
+    @Test
+    public void readsMessagesInFromServer() {
+
     }
 
     private UserIO createConsole(String userTypedText) {

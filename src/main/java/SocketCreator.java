@@ -19,7 +19,6 @@ public class SocketCreator {
     }
 
     private void exit(Exiter exit) {
-        console.showExitMessage();
         exit.exit();
     }
 

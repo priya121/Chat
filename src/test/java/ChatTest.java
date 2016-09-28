@@ -58,7 +58,7 @@ public class ChatTest {
         ChatServer server = new ChatServer(input, serverSocket);
         startChat(client, server);
         server.exit();
-        assertThat(recordedOutput.toString(), containsString("Bye!\n"));
+        assertThat(recordedOutput.toString(), containsString("Bye Priya! Priya has now left the chat.\n"));
     }
     
     @Test
@@ -73,12 +73,13 @@ public class ChatTest {
 
     @Test
     public void userCanStartAConversation() throws IOException {
-        UserIO console = createConsole("Priya\nHi\nHow are you\n.\n.\n");
+        UserIO console = createConsole("Priya\nHi\nHow are you?\n.\n.\n");
         ChatClient client = new ChatClient(console, socketConnection);
         ChatServer server = new ChatServer(console, serverSocket);
         startChat(client, server);
         server.exit();
-        assertThat(recordedOutput.toString(), containsString("Hi\n"));
+        assertThat(recordedOutput.toString(), containsString("Priya: Hi\n"));
+        assertThat(recordedOutput.toString(), containsString("Priya: How Are You?\n"));
     }
 
     private void startChat(ChatClient client, ChatServer server) throws IOException {
@@ -87,12 +88,7 @@ public class ChatTest {
     }
 
     private void createServerThread(final ChatServer server) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                server.start();
-            }
-        };
+        Runnable runnable = () -> server.start();
         Executors.newSingleThreadExecutor().submit(runnable);
     }
 

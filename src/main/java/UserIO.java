@@ -23,8 +23,8 @@ public class UserIO {
                    "type . to exit:\n");
     }
 
-    public void showExitMessage() {
-        showOutput("Bye!");
+    public void showExitMessage(String name) {
+        showOutput("Bye " + name + "! " + name + " has now left the chat.");
     }
 
     public void userJoinedMessage(String name) {
