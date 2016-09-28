@@ -30,7 +30,7 @@ public class ChatServerTest {
         socket = new FakeSocketSpy();
         socketConnection = new FakeServerSocket(socket);
         serverSocket = new RealServerSocket(new ServerSocket(4444));
-        realSocket = new RealSocket(new Socket("192.168.0.3.", 4444));
+        realSocket = new RealSocket(new Socket("10.0.0.32.", 4444));
     }
 
     @After

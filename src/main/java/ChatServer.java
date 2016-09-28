@@ -24,12 +24,7 @@ public class ChatServer {
     }
 
     private void createServerThread(SocketConnection client) {
-        Runnable runnable = new Runnable() {
-
-            public void run() {
-                readInFromAndWriteOutToClient(client);
-            }
-        };
+        Runnable runnable = () -> readInFromAndWriteOutToClient(client);
         Executors.newSingleThreadExecutor().submit(runnable);
     }
 
@@ -62,12 +57,12 @@ public class ChatServer {
     }
 
     private String chat(BufferedReader reader) throws IOException {
-        String name = reader.readLine();
-        while (name != null) {
-            io.showName(name);
-            name = reader.readLine();
+        String messageFromUser = reader.readLine();
+        while (messageFromUser != null) {
+            io.showOutput(messageFromUser);
+            messageFromUser = reader.readLine();
         }
-        return name;
+        return messageFromUser;
     }
 
     private void sendWelcomeMessage(String message, SocketConnection socket) {

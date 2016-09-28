@@ -43,10 +43,6 @@ public class UserIO {
         showOutput("Invalid start message");
     }
 
-    public void showName(String name) {
-        showOutput(name);
-    }
-
     public void showWelcomeBackMessage(String name) {
         showOutput("Welcome back " + name);
     }
@@ -55,7 +51,7 @@ public class UserIO {
         showOutput("Type y to start chat or n to exit:");
     }
 
-    private void showOutput(String message) {
+    public void showOutput(String message) {
         output.println(message);
     }
 
