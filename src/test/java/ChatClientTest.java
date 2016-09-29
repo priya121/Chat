@@ -70,8 +70,9 @@ public class ChatClientTest {
 
     @Test
     public void writesMessagesToStreamUntilQuit() throws IOException {
+        Time testClock = new TestClock("10.00am");
         UserIO console = createConsole("Priya\nHi\nhow are you\n.\n.\n");
-        ChatClient client = new ChatClient(console, socket);
+        ChatClient client = new ChatClient(console, socket, testClock);
         FakePrintStreamWriter printWriter = new FakePrintStreamWriter(socket);
         client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
         assertThat(printWriter.writtenToStream, containsString("how are you"));

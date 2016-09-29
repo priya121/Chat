@@ -73,13 +73,26 @@ public class ChatTest {
 
     @Test
     public void userCanStartAConversation() throws IOException {
+        Time testClock = new TestClock("10:00am");
         UserIO console = createConsole("Priya\nHi\nHow are you?\n.\n.\n");
-        ChatClient client = new ChatClient(console, socketConnection);
+        ChatClient client = new ChatClient(console, socketConnection, testClock);
         ChatServer server = new ChatServer(console, serverSocket);
         startChat(client, server);
         server.exit();
         assertThat(recordedOutput.toString(), containsString("Priya: Hi\n"));
-        assertThat(recordedOutput.toString(), containsString("Priya: How are you?\n"));
+    }
+
+    @Test
+    public void addsTimeStampToMessage() throws IOException {
+        Time testClock = new TestClock("10:00am");
+        UserIO console = createConsole("Priya\nHi\nHow are you?\nI'm good thanks\n you?\n.\n.\n");
+        ChatClient client = new ChatClient(console, socketConnection, testClock);
+        ChatServer server = new ChatServer(console, serverSocket);
+        createServerThread(server);
+        client.writeOutToAndReadInFromClient();
+        server.exit();
+        assertThat(recordedOutput.toString(), containsString("10:00am - Priya: Hi\n"));
+        assertThat(recordedOutput.toString(), containsString("10:00am - Priya: How are you?\n"));
     }
 
     private void startChat(ChatClient client, ChatServer server) throws IOException {
