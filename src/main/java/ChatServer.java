@@ -1,75 +1,84 @@
+import interfaces.ConsoleIO;
+import interfaces.ServerSocketConnection;
+import interfaces.SocketConnection;
+
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChatServer {
-    private ServerSocket serverSocket;
-    private UserIO io;
+    private final ServerSocketConnection serverSocket;
+    public List<User> users;
+    private ConsoleIO io;
 
-    public ChatServer(ServerSocket serverSocket, UserIO io) {
+    public ChatServer(ConsoleIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
         this.io = io;
+        this.users = new ArrayList<>();
     }
 
-    public Socket makeConnection(ServerSocket serverSocket) {
+    public void readInFromAndWriteOutToClient() {
         try {
-            Socket socket = serverSocket.accept();
-            return socket;
-        } catch (IOException e) {
-            io.showOutput("Error in connecting socket");
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public void readInFromClient() {
-        try {
-            Socket server = makeConnection(serverSocket);
+            SocketConnection server = serverSocket.accept();
             BufferedReader reader = createBufferedReader(server);
             readInputTillOver(reader, server);
             io.showExitMessage();
+            closeSocket();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
-        closeSocket();
     }
 
-    private void readInputTillOver(BufferedReader reader, Socket server) {
-        try {
+    private BufferedReader createBufferedReader(SocketConnection server) {
+            InputStream inputStream = server.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            return new BufferedReader(inputStreamReader);
+    }
+
+    private void readInputTillOver(BufferedReader reader, SocketConnection server) throws IOException {
             String name = reader.readLine();
             while (name != null) {
-                io.showOutput(name + " has now joined the chat room");
+                String nameToFind = name;
+                io.userJoinedMessage(name);
+                existingUsersWelcomeMessage(nameToFind);
+                createNewUsersList(name, nameToFind);
                 writeOutToClient(name , server);
                 name = reader.readLine();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    private BufferedReader createBufferedReader(Socket server) throws IOException {
-        InputStream inputStream = server.getInputStream();
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader readInput = new BufferedReader(inputStreamReader);
-        return readInput;
+    private void createNewUsersList(String name, String nameToFind) {
+        User user = users.stream()
+                         .filter(person -> person.getName().equals(nameToFind))
+                         .findAny().orElse(new User(name));
+        users.add(user);
+        users = getDistinctUsers();
     }
 
-    private void writeOutToClient(String message, Socket socket) {
-        try {
+    private List<User> getDistinctUsers() {
+        return users.stream()
+                    .map(person -> person.getName())
+                    .distinct()
+                    .map(person -> new User(person))
+                    .collect(Collectors.toList());
+    }
+
+    private void existingUsersWelcomeMessage(String nameToFind) {
+        users.stream()
+             .filter(person -> person.getName().equals(nameToFind))
+             .findAny()
+             .ifPresent(person -> io.showOutput("Welcome back " + person.getName()));
+    }
+
+    private void writeOutToClient(String message, SocketConnection socket) {
             OutputStream outToServer = socket.getOutputStream();
-            OutputStreamWriter outputWriter = new OutputStreamWriter(outToServer);
-            outputWriter.write("Welcome " + message);
-            outputWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            PrintWriter printWriter = new PrintWriter(outToServer, true);
+            printWriter.println(message);
+            printWriter.flush();
     }
 
     private void closeSocket() {
-        try {
-            serverSocket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        serverSocket.close();
     }
 }
