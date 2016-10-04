@@ -4,14 +4,12 @@ import org.junit.Before;
 import org.junit.Test;
 import serversocket.RealServerSocket;
 import serversocket.ServerSocketConnection;
-import socket.SocketConnection;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.concurrent.Executors;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -19,8 +17,6 @@ import static org.junit.Assert.assertThat;
 
 public class ChatTest {
     private ServerSocketConnection serverSocket;
-    private SocketConnection socketConnection;
-    private Socket socket;
     private final ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
     private final PrintStream output = new PrintStream(recordedOutput);
     private TestClock testClock;
