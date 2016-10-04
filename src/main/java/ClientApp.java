@@ -1,4 +1,3 @@
-import clock.Clock;
 import clock.Time;
 import exit.Exit;
 import socket.RealSocket;
@@ -12,12 +11,6 @@ public class ClientApp implements App {
     private final Exit exit;
     private final UserIO console;
     private Time clock;
-
-    public ClientApp(UserIO console) {
-        this.console = console;
-        this.exit = new Exit();
-        this.clock = new Clock();
-    }
 
     public ClientApp(UserIO console, Time clock) {
         this.console = console;

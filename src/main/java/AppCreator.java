@@ -1,3 +1,4 @@
+import clock.Clock;
 import clock.TestClock;
 import clock.Time;
 
@@ -9,6 +10,7 @@ public class AppCreator {
 
     public AppCreator(UserIO console) {
         this.console = console;
+        this.clock = new Clock();
     }
 
 
