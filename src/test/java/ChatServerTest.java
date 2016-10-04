@@ -1,7 +1,3 @@
-import fakes.FakeIO;
-import fakes.FakePrintStreamWriter;
-import fakes.FakeServerSocket;
-import fakes.FakeSocket;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,32 +9,33 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 public class ChatServerTest {
-    private FakeIO fakeInput;
-    private FakeSocket socket;
+    private FakeSocketSpy socket;
     private FakeServerSocket socketConnection;
-    private ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
-    private PrintStream output = new PrintStream(recordedOutput);
     private RealSocket realSocket;
     private RealServerSocket serverSocket;
-
+    private UserIO console;
+    private final ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
+    private final PrintStream output = new PrintStream(recordedOutput);
 
     @Before
     public void setUp() throws IOException {
-        fakeInput = new FakeIO(Arrays.asList("Priya", "quit"));
-        socket = new FakeSocket();
+        console = createConsole("y\nPriya\n.\n.\n.\n");
+        socket = new FakeSocketSpy();
         socketConnection = new FakeServerSocket(socket);
         serverSocket = new RealServerSocket(new ServerSocket(4444));
-        realSocket = new RealSocket(new Socket("localhost", 4444));
+        realSocket = new RealSocket(new Socket("10.0.0.32.", 4444));
     }
 
     @After
     public void tearDown() {
+        socketConnection.close();
         realSocket.close();
         socket.close();
         serverSocket.close();
@@ -46,73 +43,73 @@ public class ChatServerTest {
 
     @Test
     public void getsInputStreamFromClient() {
-        ChatServer server = new ChatServer(fakeInput, socketConnection);
+        ChatServer server = new ChatServer(console, socketConnection);
         socket.getInputStream = false;
-        server.readInFromAndWriteOutToClient();
+        server.readInFromAndWriteOutToClient(socket);
         assertTrue(socket.getInputStream);
     }
 
     @Test
     public void createsOutputStreamToSendToClient() {
-        ChatServer server = new ChatServer(fakeInput, socketConnection);
+        ChatServer server = new ChatServer(console, socketConnection);
         socket.getOutputStream = false;
-        server.readInFromAndWriteOutToClient();
+        server.readInFromAndWriteOutToClient(socket);
         assertTrue(socket.getOutputStream);
     }
 
     @Test
     public void addsNewUser() throws IOException {
-        UserIO console = createConsole("Priya\nquit\n");
+        UserIO console = createConsole("Priya\n.\n.\n");
         ChatClient client = new ChatClient(console, realSocket);
         ChatServer server = new ChatServer(console, serverSocket);
         FakePrintStreamWriter printWriter = new FakePrintStreamWriter(realSocket);
         createServerThread(server);
         client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
+        server.exit();
         assertEquals(1, server.users.size());
     }
 
     @Test
-    public void addsTwoNewUsers() throws IOException {
-        UserIO console = createConsole("Priya\nRay\nquit\n");
-        ChatClient client = new ChatClient(console, realSocket);
+    public void addsTwoUsersToTheList() throws IOException {
+        UserIO userOne = createUser("Priya\n");
+        UserIO userTwo = createUser("Joyce\n");
+        List<UserIO> clients = Arrays.asList(userOne, userTwo);
         ChatServer server = new ChatServer(console, serverSocket);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(realSocket);
-        createServerThread(server);
-        client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
+        createClientConnection(server, clients);
+        server.exit();
         assertEquals(2, server.users.size());
     }
 
     @Test
-    public void addsThreeNewUsers() throws IOException {
-        UserIO console = createConsole("Priya\nKailey\nRay\nquit\n");
-        ChatClient client = new ChatClient(console, realSocket);
+    public void doesNotAddTheSameUserTwice() throws IOException {
+        UserIO userOne = createUser("Priya\n");
+        UserIO userTwo = createUser("Priya\n");
+        List<UserIO> clients = Arrays.asList(userOne, userTwo);
         ChatServer server = new ChatServer(console, serverSocket);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(realSocket);
-        createServerThread(server);
-        client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
-        assertEquals(3, server.users.size());
+        createClientConnection(server, clients);
+        server.exit();
+        assertEquals(1, server.users.size());
+    }
+    
+    @Test
+    public void addsFiveUsers() throws IOException {
+        UserIO userOne = createUser("Priya\n");
+        UserIO userTwo = createUser("Joyce\n");
+        UserIO userThree = createUser("Erica\n");
+        UserIO userFour = createUser("Ben\n");
+        UserIO userFive = createUser("Bob\n");
+        List<UserIO> clients = Arrays.asList(userOne, userTwo, userThree, userFour, userFive);
+        ChatServer server = new ChatServer(console, serverSocket);
+        createClientConnection(server, clients);
+        server.exit();
+        assertEquals(5, server.users.size());
     }
 
-    @Test
-    public void onlyAddsDistinctUsers() throws IOException {
-        UserIO console = createConsole("Priya\nPriya\nKailey\nKailey\nRay\nquit\n");
-        ChatClient client = new ChatClient(console, realSocket);
-        ChatServer server = new ChatServer(console, serverSocket);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(realSocket);
-        createServerThread(server);
-        client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
-        assertEquals(3, server.users.size());
-    }
-
-    @Test
-    public void recognizesAnExistingUser() throws IOException {
-        UserIO console = createConsole("Priya\nRay\nPriya\nquit\n");
-        ChatClient client = new ChatClient(console, realSocket);
-        ChatServer server = new ChatServer(console, serverSocket);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(realSocket);
-        createServerThread(server);
-        client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
-        assertTrue(recordedOutput.toString().contains("Welcome back Priya"));
+    private void createClientConnection(ChatServer server, List clientInputs) throws IOException {
+        for (Object clientInput : clientInputs) {
+            createServerThread(server);
+            new ClientApp((UserIO) clientInput).create();
+        }
     }
 
     private UserIO createConsole(String userTypedText) {
@@ -120,13 +117,13 @@ public class ChatServerTest {
         return new UserIO(userInput, output);
     }
 
+    private UserIO createUser(String name) {
+        UserIO console = createConsole("y\n"+name+".\n.\n");
+        return console;
+    }
+
     private void createServerThread(final ChatServer server) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                server.readInFromAndWriteOutToClient();
-            }
-        };
+        Runnable runnable = () -> server.start();
         Executors.newSingleThreadExecutor().submit(runnable);
     }
 }

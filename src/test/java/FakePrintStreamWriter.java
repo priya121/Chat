@@ -1,8 +1,3 @@
-package fakes;
-
-import interfaces.SocketConnection;
-import interfaces.StreamWriter;
-
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
@@ -10,6 +5,7 @@ public class FakePrintStreamWriter implements StreamWriter {
 
     private final PrintWriter printWriter;
     private final OutputStream outputStream;
+    public String writtenToStream;
 
     public FakePrintStreamWriter(SocketConnection socketConnection) {
         this.outputStream = socketConnection.getOutputStream();
@@ -18,6 +14,7 @@ public class FakePrintStreamWriter implements StreamWriter {
 
     @Override
     public void println(String name) {
+        writtenToStream += name;
         printWriter.println(name);
     }
 

@@ -1,14 +1,10 @@
-import interfaces.ConsoleIO;
-import interfaces.SocketConnection;
-import interfaces.StreamWriter;
-
 import java.io.*;
 
 public class ChatClient {
     private final SocketConnection socket;
-    private final ConsoleIO io;
+    private final UserIO io;
 
-    public ChatClient(ConsoleIO io, SocketConnection socket) {
+    public ChatClient(UserIO io, SocketConnection socket) {
         this.io = io;
         this.socket = socket;
     }
@@ -18,20 +14,32 @@ public class ChatClient {
         String name = io.getInput();
         StreamWriter printWriter = createPrintWriter();
         writeMessageToServerUntilQuit(name, printWriter);
-        io.showExitMessage();
         closeSocket();
     }
 
     public void writeMessageToServerUntilQuit(String name, StreamWriter printWriter) {
-        while (!name.contains("quit")) {
-            try {
+        try {
+            if (!name.contains(".")) {
                 printWriter.println(name);
                 printWriter.flush();
                 readInMessageFromServer();
+                io.chatStartedMessage();
+                startChat(name, printWriter);
+                io.showExitMessage(name);
                 name = io.getInput();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                writeMessageToServerUntilQuit(name, printWriter);
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void startChat(String name, StreamWriter printWriter) throws IOException {
+        String messages = io.getInput();
+        if (!messages.contains(".")) {
+            printWriter.println(name + ": " + messages);
+            printWriter.flush();
+            startChat(name, printWriter);
         }
     }
 
