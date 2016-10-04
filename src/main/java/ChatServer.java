@@ -12,7 +12,7 @@ public class ChatServer {
     private final ServerSocketConnection serverSocket;
     private final UserIO console;
     private final List<User> users;
-    boolean SERVER_LISTENING = true;
+    private final boolean SERVER_LISTENING = true;
     private final int WELCOME_PROTOCOL = 1;
     private final int CHAT_PROTOCOL = 2;
     private final int EXIT_PROTOCOL = 3;

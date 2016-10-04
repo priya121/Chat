@@ -13,7 +13,6 @@ public class AppCreator {
         this.clock = new Clock();
     }
 
-
     public AppCreator(UserIO console, TestClock testClock) {
         this.console = console;
         this.clock = testClock;
