@@ -3,7 +3,7 @@ import org.junit.Test;
 import protocols.*;
 import serversocket.ServerSocketStub;
 import socket.SocketMockSpy;
-import streamwriter.FakePrintStreamWriter;
+import streamwriter.MockPrintStreamWriter;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class ChatServerTest {
     private final PrintStream output = new PrintStream(recordedOutput);
     private final List<User> users = new ArrayList<>();
     private final String EXIT_PROTOCOL = "3";
-    private FakePrintStreamWriter writer;
+    private MockPrintStreamWriter writer;
 
     @Before
     public void setUp() throws IOException {
@@ -33,7 +33,7 @@ public class ChatServerTest {
         List<String> protocol = Collections.singletonList(EXIT_PROTOCOL);
         List<String> message = Collections.singletonList("Priya");
         fakeSocketSpy = new SocketMockSpy(protocol, message);
-        writer = new FakePrintStreamWriter(fakeSocketSpy);
+        writer = new MockPrintStreamWriter(fakeSocketSpy);
         serverSocketStub = new ServerSocketStub(fakeSocketSpy);
     }
 

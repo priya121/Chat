@@ -5,14 +5,14 @@ import socket.SocketConnection;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-public class FakePrintStreamWriter implements StreamWriter {
+public class MockPrintStreamWriter implements StreamWriter {
 
     private final PrintWriter printWriter;
     private final OutputStream outputStream;
     public String writtenToStream;
     boolean AUTOFLUSH = true;
 
-    public FakePrintStreamWriter(SocketConnection socketConnection) {
+    public MockPrintStreamWriter(SocketConnection socketConnection) {
         this.outputStream = socketConnection.getOutputStream();
         this.printWriter = new PrintWriter(outputStream, AUTOFLUSH);
     }

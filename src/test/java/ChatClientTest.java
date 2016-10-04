@@ -3,7 +3,7 @@ import clock.Time;
 import org.junit.Before;
 import org.junit.Test;
 import socket.SocketMockSpy;
-import streamwriter.FakePrintStreamWriter;
+import streamwriter.MockPrintStreamWriter;
 
 import java.io.*;
 import java.util.Arrays;
@@ -57,7 +57,7 @@ public class ChatClientTest {
     @Test
     public void socketNotClosedUntilEndOfApp() {
         ChatClient client = new ChatClient(console, socket, testClock);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(socket);
+        MockPrintStreamWriter printWriter = new MockPrintStreamWriter(socket);
         socket.closed = false;
         client.readMessagesFromAndWriteToServer("Hi", printWriter);
         assertFalse(socket.closed);
@@ -82,7 +82,7 @@ public class ChatClientTest {
     public void writesMessagesToStreamUntilQuit() throws IOException {
         UserIO console = createConsole("Priya\nHi\nhow are you\n.\n.\n");
         ChatClient client = new ChatClient(console, socket, testClock);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(socket);
+        MockPrintStreamWriter printWriter = new MockPrintStreamWriter(socket);
         client.readMessagesFromAndWriteToServer((console.getInput()), printWriter);
         assertThat(printWriter.writtenToStream, containsString("Priya"));
         assertThat(printWriter.writtenToStream, containsString("Hi"));
@@ -93,7 +93,7 @@ public class ChatClientTest {
     public void addsTimeStampToMessage() throws IOException, InterruptedException {
         Time testClock = new TestClock("12:00pm");
         ChatClient client = new ChatClient(console, socket, testClock);
-        FakePrintStreamWriter writer = new FakePrintStreamWriter(socket);
+        MockPrintStreamWriter writer = new MockPrintStreamWriter(socket);
         client.readMessagesFromAndWriteToServer("Nadia", writer);
         assertThat(writer.writtenToStream, containsString("12:00pm - Nadia: Hi\n"));
     }
