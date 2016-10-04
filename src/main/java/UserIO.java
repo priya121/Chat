@@ -19,32 +19,16 @@ public class UserIO {
 
     public void showInitialMessage(int port) {
         showOutput("You're connected on port " + String.valueOf(port) + "\n" +
-                   "Enter your name to register:\n" +
+                   "Enter your name to register:\n\n" +
                    "type . to exit:\n");
     }
 
-    public void showExitMessage(String name) {
-        showOutput("Bye " + name + "! " + name + " has now left the chat.");
-    }
-
-    public void userJoinedMessage(String name) {
-        showOutput(name + " has now joined the chat room");
-    }
-
-    public void welcomeMessage(String name) {
-        showOutput("Welcome " + name);
-    }
-
     public void chatStartedMessage() {
-        showOutput("Chat started, type . to quit App");
+        showOutput("Chat started, type . to quit Application");
     }
 
     public void showInvalidInputMessage() {
         showOutput("Invalid start message");
-    }
-
-    public void showWelcomeBackMessage(String name) {
-        showOutput("Welcome back " + name);
     }
 
     public void showConnectionMessage() {

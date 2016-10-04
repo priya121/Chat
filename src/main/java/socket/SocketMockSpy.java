@@ -1,17 +1,25 @@
+package socket;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
 
-public class FakeSocketSpy implements SocketConnection {
+public class SocketMockSpy implements SocketConnection {
     public boolean getOutputStream;
     public boolean getInputStream;
     public boolean closed;
+    private final LinkedList<String> messages;
+    private final LinkedList<String> protocol;
 
-    public FakeSocketSpy() {
+    public SocketMockSpy(List<String> protocol, List<String> messages) {
         this.getInputStream = false;
         this.getOutputStream = false;
         this.closed = false;
+        this.protocol = new LinkedList<>(protocol);
+        this.messages = new LinkedList<>(messages);
     }
 
     @Override
@@ -22,15 +30,13 @@ public class FakeSocketSpy implements SocketConnection {
     @Override
     public InputStream getInputStream() {
         getInputStream = true;
-        String inputFromServer = "Priya";
-        return new ByteArrayInputStream(inputFromServer.getBytes());
+        return new ByteArrayInputStream((protocol.pop() + "\n" + messages.pop()).getBytes());
     }
 
     @Override
     public OutputStream getOutputStream() {
         getOutputStream = true;
-        OutputStream outputStream = new ByteArrayOutputStream() ;
-        return outputStream;
+        return new ByteArrayOutputStream();
     }
 
     @Override

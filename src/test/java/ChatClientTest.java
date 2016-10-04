@@ -1,90 +1,107 @@
+import clock.TestClock;
+import clock.Time;
 import org.junit.Before;
 import org.junit.Test;
+import socket.SocketMockSpy;
+import streamwriter.MockPrintStreamWriter;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
 public class ChatClientTest {
-    private FakeSocketSpy socket;
     private final ByteArrayOutputStream recordedOutput = new ByteArrayOutputStream();
     private final PrintStream output = new PrintStream(recordedOutput);
+    private SocketMockSpy socket;
     private UserIO console;
+    private TestClock testClock;
 
     @Before
     public void setUp() throws IOException {
-        socket = new FakeSocketSpy();
-        console = createConsole("Priya\n.\n.\n");
+        console = createConsole("Hi\n.\n");
+        List<String> protocol = Collections.singletonList("3");
+        List<String> messages = Collections.singletonList("Priya");
+        testClock = new TestClock("12:00pm");
+        socket = new SocketMockSpy(protocol, messages);
     }
 
     @Test
-    public void getsInputStreamFromServer() {
-        ChatClient client = new ChatClient(console, socket);
-        socket.getInputStream = false;
-        client.writeOutToAndReadInFromClient();
-        assertTrue(socket.getOutputStream);
-    }
-
-    @Test
-    public void createsOutputStreamToSendToServer() {
-        ChatClient client = new ChatClient(console, socket);
+    public void createsOutputStreamToSend() {
+        ChatClient client = new ChatClient(console, socket, testClock);
         socket.getOutputStream = false;
-        client.writeOutToAndReadInFromClient();
+        client.writeOutToAndReadInFromServer();
         assertTrue(socket.getOutputStream);
     }
 
     @Test
-    public void closesSocketAfterUserEntersQuit() {
-        ChatClient client = new ChatClient(console, socket);
+    public void createsInputStreamToRead() {
+        ChatClient client = new ChatClient(console, socket, testClock);
+        socket.getInputStream = false;
+        client.writeOutToAndReadInFromServer();
+        assertTrue(socket.getInputStream);
+    }
+
+    @Test
+    public void closesSocketWhenDotEntered() {
+        console = createConsole(".\n");
+        ChatClient client = new ChatClient(console, socket, testClock);
         socket.closed = false;
-        client.writeOutToAndReadInFromClient();
+        client.writeOutToAndReadInFromServer();
         assertTrue(socket.closed);
     }
 
     @Test
-    public void socketNotClosedUntilStreamReadFromClient() {
-        UserIO console = createConsole("Priya\n.\n.\n");
-        ChatClient client = new ChatClient(console, socket);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(socket);
+    public void socketNotClosedUntilEndOfApp() {
+        ChatClient client = new ChatClient(console, socket, testClock);
+        MockPrintStreamWriter printWriter = new MockPrintStreamWriter(socket);
         socket.closed = false;
-        client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
+        client.readMessagesFromAndWriteToServer("Hi", printWriter);
         assertFalse(socket.closed);
     }
 
     @Test
-    public void writesInputToOutputStream() {
-        UserIO console = createConsole("Priya\n.\n.\n");
-        ChatClient client = new ChatClient(console, socket);
-        client.writeOutToAndReadInFromClient();
+    public void readsInFromInputStream() {
+        List<String> message = Arrays.asList("Welcome Erica", "Bye");
+        List<String> nextMessage = Arrays.asList("Bye Erica! Erica has now left the chat.");
+        socket = new SocketMockSpy(message, nextMessage);
+        ChatClient client = new ChatClient(console, socket, testClock);
+        client.writeOutToAndReadInFromServer();
         assertEquals(recordedOutput.toString(), "You're connected on port 4444\n" +
-                                       "Enter your name to register:\n" +
-                                       "type . to exit:\n\n" +
-                                       "Welcome Priya\n" +
-                                       "Chat started, type . to quit App\n" +
-                                       "Bye Priya! Priya has now left the chat.\n");
+                                                "Enter your name to register:\n\n" +
+                                                "type . to exit:\n\n" +
+                                                "Welcome Erica\n" +
+                                                "Chat started, type . to quit Application\n" +
+                                                "Bye Erica! Erica has now left the chat.\n");
     }
 
     @Test
     public void writesMessagesToStreamUntilQuit() throws IOException {
         UserIO console = createConsole("Priya\nHi\nhow are you\n.\n.\n");
-        ChatClient client = new ChatClient(console, socket);
-        FakePrintStreamWriter printWriter = new FakePrintStreamWriter(socket);
-        client.writeMessageToServerUntilQuit((console.getInput()), printWriter);
+        ChatClient client = new ChatClient(console, socket, testClock);
+        MockPrintStreamWriter printWriter = new MockPrintStreamWriter(socket);
+        client.readMessagesFromAndWriteToServer((console.getInput()), printWriter);
+        assertThat(printWriter.writtenToStream, containsString("Priya"));
+        assertThat(printWriter.writtenToStream, containsString("Hi"));
         assertThat(printWriter.writtenToStream, containsString("how are you"));
     }
 
     @Test
-    public void readsMessagesInFromServer() {
-
+    public void addsTimeStampToMessage() throws IOException, InterruptedException {
+        Time testClock = new TestClock("12:00pm");
+        ChatClient client = new ChatClient(console, socket, testClock);
+        MockPrintStreamWriter writer = new MockPrintStreamWriter(socket);
+        client.readMessagesFromAndWriteToServer("Nadia", writer);
+        assertThat(writer.writtenToStream, containsString("12:00pm - Nadia: Hi\n"));
     }
 
     private UserIO createConsole(String userTypedText) {
         ByteArrayInputStream userInput = new ByteArrayInputStream(userTypedText.getBytes());
         return new UserIO(userInput, output);
     }
+
 }
 

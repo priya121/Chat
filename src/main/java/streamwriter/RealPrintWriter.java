@@ -1,3 +1,5 @@
+package streamwriter;
+
 import java.io.OutputStream;
 import java.io.PrintWriter;
 

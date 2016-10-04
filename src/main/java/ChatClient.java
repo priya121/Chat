@@ -1,51 +1,68 @@
+import clock.Time;
+import socket.SocketConnection;
+import streamwriter.RealPrintWriter;
+import streamwriter.StreamWriter;
+
 import java.io.*;
 
 public class ChatClient {
+    private final String WELCOME_REQUEST = "1";
+    private final String EXIT_REQUEST = "3";
+    private final String EXIT_SIGNAL = ".";
     private final SocketConnection socket;
-    private final UserIO io;
+    private final UserIO console;
+    private final Time clock;
 
-    public ChatClient(UserIO io, SocketConnection socket) {
-        this.io = io;
-        this.socket = socket;
+    public ChatClient(UserIO io, SocketConnection socketConnection, Time clock) {
+        this.console = io;
+        this.socket = socketConnection;
+        this.clock = clock;
     }
 
-    public void writeOutToAndReadInFromClient() {
-        io.showInitialMessage(socket.getPort());
-        String name = io.getInput();
-        StreamWriter printWriter = createPrintWriter();
-        writeMessageToServerUntilQuit(name, printWriter);
+    public void writeOutToAndReadInFromServer() {
+        StreamWriter writer = createPrintWriter();
+        console.showInitialMessage(socket.getPort());
+        String name = console.getInput();
+        readMessagesFromAndWriteToServer(name, writer);
         closeSocket();
     }
 
-    public void writeMessageToServerUntilQuit(String name, StreamWriter printWriter) {
+    public void readMessagesFromAndWriteToServer(String name, StreamWriter writer) {
         try {
-            if (!name.contains(".")) {
-                printWriter.println(name);
-                printWriter.flush();
-                readInMessageFromServer();
-                io.chatStartedMessage();
-                startChat(name, printWriter);
-                io.showExitMessage(name);
-                name = io.getInput();
-                writeMessageToServerUntilQuit(name, printWriter);
+            BufferedReader reader = createBufferedReader();
+            if (!name.equals(EXIT_SIGNAL )) {
+                sendWelcomeRequest(name, writer, reader);
+                chat(name, writer, reader);
+                sendExitRequest(name, writer, reader);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void startChat(String name, StreamWriter printWriter) throws IOException {
-        String messages = io.getInput();
-        if (!messages.contains(".")) {
-            printWriter.println(name + ": " + messages);
-            printWriter.flush();
-            startChat(name, printWriter);
-        }
+    private void chat(String name, StreamWriter writer, BufferedReader reader) {
+        Chat chat = new Chat(name, console, clock);
+        chat.start(writer, reader);
     }
 
-    private void readInMessageFromServer() throws IOException {
-        BufferedReader reader = createBufferedReader();
-        io.welcomeMessage(reader.readLine());
+    private void sendExitRequest(String name, StreamWriter writer, BufferedReader reader) throws IOException {
+        sendToServer(EXIT_REQUEST, name, writer);
+        console.showOutput(getMessageFromServer(reader));
+    }
+
+    private void sendWelcomeRequest(String name, StreamWriter writer, BufferedReader reader) throws IOException {
+        sendToServer(WELCOME_REQUEST, name, writer);
+        console.showOutput(getMessageFromServer(reader));
+    }
+
+    private String getMessageFromServer(BufferedReader reader) throws IOException {
+        return reader.readLine();
+    }
+
+    private void sendToServer(String number, String name, StreamWriter printWriter) {
+        printWriter.println(number);
+        printWriter.println(name);
+        printWriter.flush();
     }
 
     private StreamWriter createPrintWriter() {
@@ -62,4 +79,6 @@ public class ChatClient {
     private void closeSocket() {
         socket.close();
     }
+
 }
+
