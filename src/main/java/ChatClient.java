@@ -1,77 +1,68 @@
+import clock.Time;
+import socket.SocketConnection;
+import streamwriter.RealPrintWriter;
+import streamwriter.StreamWriter;
+
 import java.io.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class ChatClient {
+    private final String WELCOME_REQUEST = "1";
+    private final String EXIT_REQUEST = "3";
+    private final String EXIT_SIGNAL = ".";
     private final SocketConnection socket;
-    private final UserIO io;
-    private Time clock;
-
-    public ChatClient(UserIO io, SocketConnection socket) {
-        this.io = io;
-        this.socket = socket;
-    }
+    private final UserIO console;
+    private final Time clock;
 
     public ChatClient(UserIO io, SocketConnection socketConnection, Time clock) {
-        this.io = io;
+        this.console = io;
         this.socket = socketConnection;
         this.clock = clock;
     }
 
-    public void writeOutToAndReadInFromClient() {
-        io.showInitialMessage(socket.getPort());
-        String name = io.getInput();
-        StreamWriter printWriter = createPrintWriter();
-        writeMessageToServerUntilQuit(name, printWriter);
+    public void writeOutToAndReadInFromServer() {
+        StreamWriter writer = createPrintWriter();
+        console.showInitialMessage(socket.getPort());
+        String name = console.getInput();
+        readMessagesFromAndWriteToServer(name, writer);
         closeSocket();
     }
 
-    public void writeMessageToServerUntilQuit(String name, StreamWriter printWriter) {
-        createThreadForTimer();
+    public void readMessagesFromAndWriteToServer(String name, StreamWriter writer) {
         try {
-            if (!name.equals(".")) {
-                printWriter.println(name);
-                printWriter.flush();
-                readInMessageFromServer();
-                io.chatStartedMessage();
-                startChat(name, printWriter);
-                io.showExitMessage(name);
-                name = io.getInput();
-                writeMessageToServerUntilQuit(name, printWriter);
+            BufferedReader reader = createBufferedReader();
+            if (!name.equals(EXIT_SIGNAL )) {
+                sendWelcomeRequest(name, writer, reader);
+                chat(name, writer, reader);
+                sendExitRequest(name, writer, reader);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public void showAllMessages(BufferedReader reader) {
-        ReadingAllMessagesTask task = new ReadingAllMessagesTask(reader, io);
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-        ScheduledFuture<?> result = executorService.scheduleAtFixedRate(task, 1, 2, TimeUnit.SECONDS);
-
-        try {
-            TimeUnit.MINUTES.sleep(20000);
-        }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        executorService.shutdown();
+    private void chat(String name, StreamWriter writer, BufferedReader reader) {
+        Chat chat = new Chat(name, console, clock);
+        chat.start(writer, reader);
     }
 
-    private void startChat(String name, StreamWriter printWriter) throws IOException {
-        String messages = io.getInput();
-        if (!messages.equals(".")) {
-            printWriter.println(clock.getTimeStamp() + " - " + name + ": " + messages);
-            printWriter.flush();
-            startChat(name, printWriter);
-        }
+    private void sendExitRequest(String name, StreamWriter writer, BufferedReader reader) throws IOException {
+        sendToServer(EXIT_REQUEST, name, writer);
+        console.showOutput(getMessageFromServer(reader));
     }
 
-    private void readInMessageFromServer() throws IOException {
-        BufferedReader reader = createBufferedReader();
-        io.welcomeMessage(reader.readLine());
+    private void sendWelcomeRequest(String name, StreamWriter writer, BufferedReader reader) throws IOException {
+        sendToServer(WELCOME_REQUEST, name, writer);
+        console.showOutput(getMessageFromServer(reader));
+    }
+
+    private String getMessageFromServer(BufferedReader reader) throws IOException {
+        return reader.readLine();
+    }
+
+    private void sendToServer(String number, String name, StreamWriter printWriter) {
+        printWriter.println(number);
+        printWriter.println(name);
+        printWriter.flush();
     }
 
     private StreamWriter createPrintWriter() {
@@ -89,37 +80,5 @@ public class ChatClient {
         socket.close();
     }
 
-    private void createThreadForTimer() {
-        BufferedReader reader = createBufferedReader();
-        Runnable runnable = () -> {
-            showAllMessages(reader);
-        };
-        Executors.newSingleThreadExecutor().submit(runnable);
-    }
 }
 
-class ReadingAllMessagesTask implements Runnable {
-    private final BufferedReader reader;
-    private final UserIO io;
-
-    public ReadingAllMessagesTask(BufferedReader reader, UserIO io) {
-        this.reader = reader;
-        this.io = io;
-    }
-
-        @Override
-        public void run()
-        {
-            try {
-                String display = "";
-                String[] messages = reader.readLine().split(",");
-                for (String message :messages) {
-                    display += message + "\n";
-                }
-                io.showOutput(display);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-}

@@ -1,3 +1,5 @@
+package clock;
+
 public class TestClock implements Time {
 
     private final String time;

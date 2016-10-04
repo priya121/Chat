@@ -1,17 +1,31 @@
+import clock.TestClock;
+import clock.Time;
+
 import java.io.IOException;
 
 public class AppCreator {
     private final UserIO console;
+    private Time clock;
 
     public AppCreator(UserIO console) {
         this.console = console;
     }
 
-    public void create(String choice) throws IOException {
+
+    public AppCreator(UserIO console, TestClock testClock) {
+        this.console = console;
+        this.clock = testClock;
+
+    }
+    public void start(String choice) throws IOException {
+        create(choice).start();
+    }
+
+    private App create(String choice) throws IOException {
         if (choice.equals("in")) {
-            new ClientApp(console).create();
-        } else if (choice.equals("out")) {
-            new ServerApp(console).create();
+            return new ClientApp(console, clock);
+        } else {
+            return new ServerApp(console);
         }
     }
 }

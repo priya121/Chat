@@ -1,16 +1,23 @@
+import serversocket.RealServerSocket;
+
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 
-public class ServerApp {
+public class ServerApp implements App {
     private final UserIO console;
 
     public ServerApp (UserIO console) {
         this.console = console;
     }
 
-    public void create() throws IOException {
-        RealServerSocket serverSocket = new RealServerSocket(new ServerSocket(4444));
-        ChatServer serverThread = new ChatServer(console, serverSocket);
-        serverThread.start();
+    public void start() {
+        try {
+            RealServerSocket serverSocket = new RealServerSocket(new ServerSocket(4444));
+            ChatServer server = new ChatServer(console, serverSocket);
+            server.start();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

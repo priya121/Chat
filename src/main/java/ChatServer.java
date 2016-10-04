@@ -1,78 +1,93 @@
+import protocols.*;
+import serversocket.ServerSocketConnection;
+import socket.SocketConnection;
+import streamwriter.RealPrintWriter;
+import streamwriter.StreamWriter;
+
 import java.io.*;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class ChatServer {
     private final ServerSocketConnection serverSocket;
-    private SocketConnection client;
-    public List<User> users;
     private final UserIO console;
-    private final boolean AUTOFLUSH = true;
-    private List messageHistory;
+    private final List<User> users;
+    boolean SERVER_LISTENING = true;
+    private final int WELCOME_PROTOCOL = 1;
+    private final int CHAT_PROTOCOL = 2;
+    private final int EXIT_PROTOCOL = 3;
 
     public ChatServer(UserIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
         this.console = io;
         this.users = new ArrayList<>();
-        this.messageHistory = new ArrayList();
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     public void start() {
-        while (true) {
-            client = serverSocket.accept();
-            createServerThread();
-            sendAllMessagesThread(client);
+        while (SERVER_LISTENING) {
+            SocketConnection client = serverSocket.accept();
+            readInFromClient(client);
+            client.close();
         }
     }
 
-    private void sendAllMessagesThread(SocketConnection client) {
-        PrintWriter writer = createPrintWriter(client);
-        Runnable runnable = () -> {
-            sendAllMessages(writer);
-        };
-        Executors.newSingleThreadExecutor().submit(runnable);
-    }
-
-    private void createServerThread() {
-        Runnable runnable = () -> {
-            readInFromAndWriteOutToClient(client);
-        };
-        Executors.newSingleThreadExecutor().submit(runnable);
-    }
-
-    public void readInFromAndWriteOutToClient(SocketConnection client) {
+    public void readInFromClient(SocketConnection client) {
+        BufferedReader reader = createBufferedReader(client);
+        StreamWriter writer = createPrintWriter(client);
         try {
-            readInputUntilOver(client);
+            actOnProtocol(client, writer, reader);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } catch (ParseException e) {
-            e.printStackTrace();
         }
     }
 
-    private void readInputUntilOver(SocketConnection client) throws IOException, ParseException {
-        BufferedReader reader = createBufferedReader(client);
-        PrintWriter writer = createPrintWriter(client);
-        String fromClient = reader.readLine();
-        startChat(reader, writer, fromClient);
-        console.showExitMessage(fromClient);
+    public void actOnProtocol(SocketConnection client, StreamWriter writer, BufferedReader reader) throws IOException {
+        Integer protocolNumber = Integer.valueOf(getMessageFromUser(reader));
+        String protocolMessage = getMessageFromUser(reader);
+        if (protocolNumber != EXIT_PROTOCOL) {
+            String response = getResponse(protocolNumber, protocolMessage);
+            sendAndDisplay(writer, response);
+            readInFromClient(client);
+        } else {
+            String exitMessage = new ExitProtocol(protocolMessage).action();
+            sendAndDisplay(writer, exitMessage);
+        }
     }
 
-    private void startChat(BufferedReader reader, PrintWriter writer, String fromClient) throws IOException, ParseException {
-        if (fromClient != null) {
-            console.userJoinedMessage(fromClient);
-            existingUsersWelcomeMessage(fromClient);
-            createNewUsersList(fromClient);
-            sendWelcomeMessage(writer, fromClient);
-            fromClient = mainChat(reader, writer);
-            startChat(reader, writer, fromClient);
+    private String getMessageFromUser(BufferedReader reader) throws IOException {
+        return reader.readLine();
+    }
+
+    private String getResponse(Integer protocolNumber, String protocolMessage) {
+        Protocol protocol = process(protocolNumber, protocolMessage);
+        return protocol.action();
+    }
+
+    public Protocol process(int requestNumber, String message) {
+        switch (requestNumber) {
+            case WELCOME_PROTOCOL:
+                return new WelcomeProtocol(message, users);
+            case CHAT_PROTOCOL:
+                return new ChatProtocol(message);
+            case EXIT_PROTOCOL:
+                return new ExitProtocol(message);
+            default:
+                return new ExitProtocol(message);
         }
+    }
+
+    public String determineAction(Protocol protocol) {
+        return protocol.action();
+    }
+
+    public int numberOfClients() {
+      return users.size();
+    }
+
+    private void sendAndDisplay(StreamWriter writer, String result) {
+        writer.println(result);
+        console.showOutput(result);
     }
 
     private BufferedReader createBufferedReader(SocketConnection client) {
@@ -81,95 +96,9 @@ public class ChatServer {
         return new BufferedReader(inputStreamReader);
     }
 
-    private PrintWriter createPrintWriter(SocketConnection client) {
+    private StreamWriter createPrintWriter(SocketConnection client) {
         OutputStream outToServer = client.getOutputStream();
-        return new PrintWriter(outToServer, AUTOFLUSH);
-    }
-
-    private String mainChat(BufferedReader reader, PrintWriter writer) throws IOException, ParseException {
-        String messageFromUser = reader.readLine();
-        while (messageFromUser != null) {
-            String message = (messageFromUser);
-            addMessage(message);
-            console.showOutput(message);
-            messageFromUser = reader.readLine();
-            //writer.println(messageHistory);
-        }
-        return messageFromUser;
-    }
-
-    private void sendWelcomeMessage(PrintWriter writer, String message) {
-        writer.println(message);
-        writer.flush();
-    }
-
-    private void createNewUsersList(String name) {
-        User user = users.stream()
-                         .filter(person -> person.getName().equals(name))
-                         .findAny().orElse(new User(name));
-        users.add(user);
-        users = getDistinctUsers();
-    }
-
-    private List<User> getDistinctUsers() {
-        return users.stream()
-                    .map(User::getName)
-                    .distinct()
-                    .map(User::new)
-                    .collect(Collectors.toList());
-    }
-
-    private void existingUsersWelcomeMessage(String nameToFind) {
-        users.stream()
-             .filter(person -> person.getName().equals(nameToFind))
-             .findAny()
-             .ifPresent(person -> console.showWelcomeBackMessage(person.getName()));
-    }
-
-    public void exit() {
-        client.close();
-    }
-
-    public List getMessageHistory() {
-        return messageHistory;
-    }
-
-    private void addMessage(String message) {
-        messageHistory.add(message);
-    }
-
-    public void sendAllMessages(PrintWriter writer) {
-        WritingTask task1 = new WritingTask(writer, messageHistory);
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-        ScheduledFuture<?> result = executorService.scheduleAtFixedRate(task1, 2, 5, TimeUnit.SECONDS);
-
-        try {
-            TimeUnit.MINUTES.sleep(20000);
-        }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        executorService.shutdown();
+        return new RealPrintWriter(outToServer);
     }
 }
 
-class WritingTask implements Runnable {
-    private final PrintWriter writer;
-    private final List messages;
-
-    public WritingTask(PrintWriter writer, List messages) {
-        this.writer = writer;
-        this.messages = messages;
-    }
-
-    @Override
-    public void run()
-    {
-        try {
-            writer.println(messages);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}

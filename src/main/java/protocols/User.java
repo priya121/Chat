@@ -1,3 +1,5 @@
+package protocols;
+
 public class User {
     private final String name;
 
