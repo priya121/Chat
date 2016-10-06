@@ -7,6 +7,8 @@ import streamwriter.StreamWriter;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ChatServer {
     private final ServerSocketConnection serverSocket;
@@ -16,20 +18,32 @@ public class ChatServer {
     private final int WELCOME_PROTOCOL = 1;
     private final int CHAT_PROTOCOL = 2;
     private final int EXIT_PROTOCOL = 3;
+    private List messageList;
 
     public ChatServer(UserIO io, ServerSocketConnection serverSocket) {
         this.serverSocket = serverSocket;
         this.console = io;
         this.users = new ArrayList<>();
+        this.messageList = new ArrayList();
     }
 
     @SuppressWarnings("InfiniteLoopStatement")
     public void start() {
         while (SERVER_LISTENING) {
             SocketConnection client = serverSocket.accept();
-            readInFromClient(client);
-            client.close();
+            createServerThread(client);
+            createReader(client);
         }
+    }
+
+    private void createServerThread(SocketConnection client) {
+        Runnable runnable = () -> readInFromClient(client);
+        Executors.newSingleThreadExecutor().submit(runnable);
+    }
+
+    private void createReader(SocketConnection client) {
+        Runnable runnable = () -> createReaderTask(client);
+        Executors.newSingleThreadExecutor().submit(runnable);
     }
 
     public void readInFromClient(SocketConnection client) {
@@ -40,6 +54,13 @@ public class ChatServer {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public void createReaderTask(SocketConnection client) {
+        BufferedReader reader = createBufferedReader(client);
+        ExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        ReadInTask task = new ReadInTask(reader, messageList);
+        service.execute(task);
     }
 
     public void actOnProtocol(SocketConnection client, StreamWriter writer, BufferedReader reader) throws IOException {

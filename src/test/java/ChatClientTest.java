@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 public class ChatClientTest {
@@ -96,6 +97,28 @@ public class ChatClientTest {
         MockPrintStreamWriter writer = new MockPrintStreamWriter(socket);
         client.readMessagesFromAndWriteToServer("Nadia", writer);
         assertThat(writer.writtenToStream, containsString("12:00pm - Nadia: Hi\n"));
+    }
+
+    @Test
+    public void savesFirstMessage() {
+        console = createConsole("Erica\nHow are you?\n.\n");
+        List<String> message = Arrays.asList("Welcome Erica", "Bye", ".");
+        List<String> nextMessage = Arrays.asList("Bye Erica! Erica has now left the chat.", "hi");
+        socket = new SocketMockSpy(message, nextMessage);
+        ChatClient client = new ChatClient(console, socket, testClock);
+        client.writeOutToAndReadInFromServer();
+        assertFalse(client.listOfMessages().isEmpty());
+    }
+    
+    @Test
+    public void savesSubsequentMessages() {
+        console = createConsole("Erica\nHi\nI'm good thanks\nYou?\n.\n");
+        List<String> message = Arrays.asList("Welcome Erica", "Bye", ".");
+        List<String> nextMessage = Arrays.asList("Bye Erica! Erica has now left the chat.", "hi");
+        socket = new SocketMockSpy(message, nextMessage);
+        ChatClient client = new ChatClient(console, socket, testClock);
+        client.writeOutToAndReadInFromServer();
+        assertThat(client.listOfMessages().size(), is(3));
     }
 
     private UserIO createConsole(String userTypedText) {
