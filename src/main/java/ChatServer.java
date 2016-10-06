@@ -31,8 +31,8 @@ public class ChatServer {
     public void start() {
         while (SERVER_LISTENING) {
             SocketConnection client = serverSocket.accept();
-            createServerThread(client);
             createReader(client);
+            createServerThread(client);
         }
     }
 
@@ -59,7 +59,7 @@ public class ChatServer {
     public void createReaderTask(SocketConnection client) {
         BufferedReader reader = createBufferedReader(client);
         ExecutorService service = Executors.newSingleThreadScheduledExecutor();
-        ReadInTask task = new ReadInTask(reader, messageList);
+        ReadInTask task = new ReadInTask(reader, messageList, console);
         service.execute(task);
     }
 

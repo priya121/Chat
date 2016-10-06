@@ -50,9 +50,7 @@ public class ChatClient {
                     sendToServer(CHAT_REQUEST, toSend, writer);
                     console.showOutput(getMessageFromServer(reader));
                     queue.add(message);
-                    ExecutorService service = Executors.newSingleThreadExecutor();
-                    WriteOutTask task = new WriteOutTask(messages, writer);
-                    service.execute(task);
+                    createThread(writer);
                     message = console.getInput();
                 }
                 sendExitRequest(name, writer, reader);
@@ -99,6 +97,17 @@ public class ChatClient {
 
     public ConcurrentLinkedQueue listOfMessages() {
         return queue;
+    }
+
+    public void taskRunner(StreamWriter writer) {
+        ExecutorService service = Executors.newSingleThreadExecutor();
+        WriteOutTask task = new WriteOutTask(messages, writer);
+        service.execute(task);
+    }
+
+    private void createThread(StreamWriter writer) {
+        Runnable runnable = () -> taskRunner(writer);
+        Executors.newSingleThreadExecutor().submit(runnable);
     }
 }
 
